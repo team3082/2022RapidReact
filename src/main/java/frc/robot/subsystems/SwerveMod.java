@@ -11,9 +11,13 @@ public class SwerveMod {
     private TalonFX m_steer; 
     private TalonFX m_drive;
 
+    public double m_xPos;
+    public double m_yPos;
+    
+
     private boolean inverted;
 
-    public SwerveMod(int steerId, int driveId){
+    public SwerveMod(int steerId, int driveId, double x,double y){
         m_steer = new TalonFX(steerId);
         m_drive = new TalonFX(driveId);
         // configure encoders/PID
@@ -31,6 +35,11 @@ public class SwerveMod {
     
     public void drive(double power){
         m_drive.set(TalonFXControlMode.PercentOutput, power * (inverted?-1.0:1.0));
+    }
+
+    //rotates to angle given in radians
+    public void rotateToRad(double angle){
+        rotate(angle / (2 * Math.PI) * ticksPerRot);
     }
 
     //rotates to a position given in ticks
