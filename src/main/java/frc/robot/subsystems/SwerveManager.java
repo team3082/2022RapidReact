@@ -6,10 +6,10 @@ public class SwerveManager {
 
     public static void init(){
         m_swerveMods = new SwerveMod[]{
-            new SwerveMod(0,0,-1,2), 
-            new SwerveMod(0,0,1,2),
-            new SwerveMod(0,0,1,-2),
-            new SwerveMod(0,0,-1,-2)
+            new SwerveMod(0,0,-8.75,14.625), 
+            new SwerveMod(0,0,8.75,14.625),
+            new SwerveMod(0,0,8.75,-14.625),
+            new SwerveMod(0,0,-8.75,-14.625)
         };
     }
 
