@@ -8,7 +8,7 @@ public class SwerveMod {
 
     private static final double ticksPerRot = 2048 * 12.8;
 
-    private TalonFX m_steer;
+    public TalonFX m_steer;
     private TalonFX m_drive;
 
     public double m_xPos;
@@ -46,7 +46,6 @@ public class SwerveMod {
 		m_drive.config_kD(0, 0.1, 30);
         m_drive.configMotionCruiseVelocity(100, 30);
 		m_drive.configMotionAcceleration(400, 30);
-
     }
 
     public void drive(double power) {

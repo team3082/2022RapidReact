@@ -1,5 +1,6 @@
 package frc.robot;
 import edu.wpi.first.wpilibj.Joystick;
+import frc.robot.subsystems.Pigeon;
 import frc.robot.subsystems.SwerveManager;
 public class OI {
     static Joystick m_joystick;
@@ -22,7 +23,13 @@ public class OI {
         if(Math.abs(rotate)<0.1)
             rotate = 0;
 
-        SwerveManager.rotateAndDrive(rotate/1.5, x/1.5, y/1.5);
-
+        double heading = Pigeon.getRotation();
+        System.out.println(heading);
+        heading = heading / 180.0 * Math.PI;
+        SwerveManager.rotateAndDrive(rotate, x, y, heading);
+        
+        if(m_joystick.getRawButton(3)) {
+            Pigeon.zero();
+        }
     }
 }

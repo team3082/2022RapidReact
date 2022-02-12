@@ -6,19 +6,30 @@ public class SwerveManager {
 
     public static void init() {
         m_swerveMods = new SwerveMod[] {
-                new SwerveMod(0, 0, -8.75, 14.625),
-                new SwerveMod(0, 0, 8.75, 14.625),
-                new SwerveMod(0, 0, 8.75, -14.625),
-                new SwerveMod(0, 0, -8.75, -14.625)
+                new SwerveMod(2, 1, -8.75, 14.625),
+                new SwerveMod(4, 3, 8.75, 14.625),
+                new SwerveMod(6, 5, 8.75, -14.625),
+                new SwerveMod(8, 7, -8.75, -14.625)
         };
     }
+    
+    // Zero the encoder output of each of the steering motors
+    public static void zeroSteeringEncoders() {
+        for (SwerveMod mod : m_swerveMods) {
+            mod.m_steer.setSelectedSensorPosition(0);
+        }
+    }
 
-    public static void rotateAndDrive(double rotSpeed, double moveX, double moveY) {
+    public static void rotateAndDrive(double rotSpeed, double moveX, double moveY, double heading) {
         // Array containing the unclamped movement vectors of each module
         double[][] vectors = new double[m_swerveMods.length][2];
         // The greatest speed of any of the modules. If any one module's speed is
         // greater than 1.0, all of the speeds are scaled down.
         double maxSpeed = 1.0;
+
+        // Multiply the movement vector by a rotation matrix to compensate for the pigeon's heading
+        double relMoveX = moveX *  Math.cos(heading) + moveY * Math.sin(heading);
+        double relMoveY = moveX * -Math.sin(heading) + moveY * Math.cos(heading);
 
         // The greatest magnitude of any module's distance from the center of rotation
         double maxModPosMagnitude = 0;
@@ -39,8 +50,8 @@ public class SwerveManager {
 
             // The final movement vector, calculated by summing movement and rotation
             // vectors
-            double x = moveX + rotateX;
-            double y = moveY + rotateY;
+            double x = relMoveX + rotateX;
+            double y = relMoveY + rotateY;
 
             vectors[i] = new double[] { x, y };
             maxSpeed = Math.max(maxSpeed, Math.hypot(x, y));
@@ -49,13 +60,13 @@ public class SwerveManager {
         for (int i = 0; i < m_swerveMods.length; i++) {
             // Convert the movement vectors to a directions and magnitudes, clamping the
             // magnitudes based on 'max'
-            double direction = Math.atan2(vectors[i][1], vectors[i][0]);
+            double direction = Math.atan2(vectors[i][1], vectors[i][0]) - Math.PI * 0.5;
             double power = Math.hypot(vectors[i][0], vectors[i][1]) / maxSpeed;
 
             // Drive the swerve modules
-            m_swerveMods[i].drive(power);
             if (Math.abs(power) > 0.1)
                 m_swerveMods[i].rotateToRad(direction);
+            m_swerveMods[i].drive(power);
         }
 
     }

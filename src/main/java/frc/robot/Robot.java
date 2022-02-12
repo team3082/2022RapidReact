@@ -8,6 +8,7 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     SwerveManager.init();
     OI.init();
+    Pigeon.init();
   }
 
   @Override
@@ -21,12 +22,12 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     OI.joystickInput();
-
-
-    }
+  }
 
   @Override
   public void testInit() {
+    SwerveManager.zeroSteeringEncoders();
+    Pigeon.zero();
   }
 
   @Override
