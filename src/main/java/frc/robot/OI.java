@@ -11,10 +11,18 @@ public class OI {
 
     public static void joystickInput(){
 
+
+        double boost = m_joystick.getRawAxis(3);
+        boost = boost * 0.7 + 0.3;
+
+
         double x = m_joystick.getRawAxis(4);
         double y = -1* m_joystick.getRawAxis(5);
-        // rotate is inverted because negative values cause clockwise rotation in rotateAndDrive
-        double rotate = -1 * m_joystick.getRawAxis(0);
+        double rotate = m_joystick.getRawAxis(0);
+
+        x *= boost;
+        y *= boost;
+        rotate *= boost;
 
         if(Math.hypot(x, y) < 0.1){
             x = 0;
@@ -28,7 +36,7 @@ public class OI {
         heading = heading / 180.0 * Math.PI;
         SwerveManager.rotateAndDrive(rotate, x, y, heading);
         
-        if(m_joystick.getRawButton(3)) {
+        if(m_joystick.getRawButton(4)) {
             Pigeon.zero();
         }
     }

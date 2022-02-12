@@ -1,8 +1,12 @@
 package frc.robot.subsystems;
 
+import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
+import com.ctre.phoenix.sensors.AbsoluteSensorRange;
+import com.ctre.phoenix.sensors.CANCoder;
+import com.ctre.phoenix.sensors.SensorInitializationStrategy;
 
 public class SwerveMod {
 
@@ -10,24 +14,24 @@ public class SwerveMod {
 
     public TalonFX m_steer;
     private TalonFX m_drive;
+    public CANCoder m_absEncoder;
 
     public double m_xPos;
     public double m_yPos;
 
     private boolean inverted;
 
-    public SwerveMod(int steerId, int driveId, double x, double y) {
+    private double m_encoderOffset;
+
+    public SwerveMod(int steerId, int driveId, double x, double y, double encoderOffset) {
         m_steer = new TalonFX(steerId);
         m_drive = new TalonFX(driveId);
+        m_absEncoder = new CANCoder(steerId);
 
         m_xPos = x;
         m_yPos = y;
         // Configure encoders/PID
-        m_steer.configFactoryDefault();
-        m_drive.configFactoryDefault();
 
-        m_steer.configSelectedFeedbackSensor(TalonFXFeedbackDevice.IntegratedSensor, 0, 20);
-        // m_steer.configSelectedFeedbackSensor(TalonSRXFeedbackDevice.QuadEncoder, 0, 20);
         m_steer.configFactoryDefault();
         m_steer.configSelectedFeedbackSensor(TalonFXFeedbackDevice.IntegratedSensor, 0, 30);
         m_steer.configNeutralDeadband(0.001, 30);
@@ -37,6 +41,7 @@ public class SwerveMod {
 		m_steer.config_kD(0, 0.1, 30);
         m_steer.configMotionCruiseVelocity(20000, 30);
 		m_steer.configMotionAcceleration(40000, 30);
+
         m_drive.configFactoryDefault();
         m_drive.configSelectedFeedbackSensor(TalonFXFeedbackDevice.IntegratedSensor, 0, 30);
         m_drive.configNeutralDeadband(0.001, 30);
@@ -46,6 +51,24 @@ public class SwerveMod {
 		m_drive.config_kD(0, 0.1, 30);
         m_drive.configMotionCruiseVelocity(100, 30);
 		m_drive.configMotionAcceleration(400, 30);
+        
+        m_drive.setNeutralMode(NeutralMode.Brake);
+        m_steer.setNeutralMode(NeutralMode.Brake);
+
+        m_absEncoder.configSensorInitializationStrategy(SensorInitializationStrategy.BootToAbsolutePosition);
+        m_absEncoder.configMagnetOffset(0);
+        m_absEncoder.configAbsoluteSensorRange(AbsoluteSensorRange.Unsigned_0_to_360);
+        m_encoderOffset = encoderOffset;
+        resetSteerSensor();
+    }
+
+    public void resetSteerSensor()
+    {
+        double pos = m_absEncoder.getAbsolutePosition() - m_encoderOffset;
+        pos = pos / 360.0 * ticksPerRot;
+        m_steer.setSelectedSensorPosition( pos );
+        m_steer.set(TalonFXControlMode.MotionMagic, pos);
+
     }
 
     public void drive(double power) {
@@ -97,6 +120,8 @@ public class SwerveMod {
         }
 
         m_steer.set(TalonFXControlMode.MotionMagic, destination);
+
+        
     }
 
 }

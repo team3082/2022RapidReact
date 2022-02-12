@@ -6,17 +6,17 @@ public class SwerveManager {
 
     public static void init() {
         m_swerveMods = new SwerveMod[] {
-                new SwerveMod(2, 1, -8.75, 14.625),
-                new SwerveMod(4, 3, 8.75, 14.625),
-                new SwerveMod(6, 5, 8.75, -14.625),
-                new SwerveMod(8, 7, -8.75, -14.625)
+                new SwerveMod(2, 1, -1, -1, 253.213),
+                new SwerveMod(4, 3, -1,  1, 202.500),
+                new SwerveMod(6, 5,  1,  1, 253.125),
+                new SwerveMod(8, 7,  1, -1, 127.178)
         };
     }
     
     // Zero the encoder output of each of the steering motors
     public static void zeroSteeringEncoders() {
         for (SwerveMod mod : m_swerveMods) {
-            mod.m_steer.setSelectedSensorPosition(0);
+            mod.resetSteerSensor();
         }
     }
 
@@ -69,6 +69,12 @@ public class SwerveManager {
             m_swerveMods[i].drive(power);
         }
 
+
+
+        for(int i =0; i < m_swerveMods.length; i++)
+        {
+            //System.out.println(i + ": " + m_swerveMods[i].m_absEncoder.getAbsolutePosition() + " __ " + m_swerveMods[i].m_steer.getSelectedSensorPosition());
+        }
     }
 
 }

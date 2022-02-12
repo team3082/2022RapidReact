@@ -1,4 +1,7 @@
 package frc.robot;
+import com.ctre.phoenix.sensors.CANCoder;
+
+import edu.wpi.first.wpilibj.CAN;
 import edu.wpi.first.wpilibj.TimedRobot;
 import frc.robot.subsystems.*;
 
@@ -17,6 +20,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopInit() {
+    SwerveManager.zeroSteeringEncoders();
   }
 
   @Override
@@ -26,12 +30,12 @@ public class Robot extends TimedRobot {
 
   @Override
   public void testInit() {
-    SwerveManager.zeroSteeringEncoders();
     Pigeon.zero();
   }
 
   @Override
   public void testPeriodic() {
+
   }
 
   @Override
