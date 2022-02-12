@@ -7,7 +7,7 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     SwerveManager.init();
-
+    OI.init();
   }
 
   @Override

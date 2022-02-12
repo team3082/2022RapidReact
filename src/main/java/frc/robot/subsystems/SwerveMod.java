@@ -19,6 +19,9 @@ public class SwerveMod {
     public SwerveMod(int steerId, int driveId, double x, double y) {
         m_steer = new TalonFX(steerId);
         m_drive = new TalonFX(driveId);
+
+        m_xPos = x;
+        m_yPos = y;
         // Configure encoders/PID
         m_steer.configFactoryDefault();
         m_drive.configFactoryDefault();

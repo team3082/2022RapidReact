@@ -12,9 +12,17 @@ public class OI {
 
         double x = m_joystick.getRawAxis(4);
         double y = -1* m_joystick.getRawAxis(5);
-        double rotate = m_joystick.getRawAxis(0);
+        // rotate is inverted because negative values cause clockwise rotation in rotateAndDrive
+        double rotate = -1 * m_joystick.getRawAxis(0);
 
-        SwerveManager.rotateAndDrive(rotate, x, y);
+        if(Math.hypot(x, y) < 0.1){
+            x = 0;
+            y = 0;
+        }
+        if(Math.abs(rotate)<0.1)
+            rotate = 0;
+
+        SwerveManager.rotateAndDrive(rotate/1.5, x/1.5, y/1.5);
 
     }
 }
