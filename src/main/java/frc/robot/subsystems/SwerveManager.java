@@ -59,7 +59,9 @@ public class SwerveManager {
 
         for (int i = 0; i < m_swerveMods.length; i++) {
             // Convert the movement vectors to a directions and magnitudes, clamping the
-            // magnitudes based on 'max'
+            // magnitudes based on 'max'. An angle of 0 corresponds with a rightward movement
+            // in vector space but causes a forward movement for the motors, so PI/2 must be 
+            // subtracted from the vector's direction to compensate.
             double direction = Math.atan2(vectors[i][1], vectors[i][0]) - Math.PI * 0.5;
             double power = Math.hypot(vectors[i][0], vectors[i][1]) / maxSpeed;
 
