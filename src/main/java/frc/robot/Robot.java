@@ -3,6 +3,7 @@ import com.ctre.phoenix.sensors.CANCoder;
 
 import edu.wpi.first.wpilibj.CAN;
 import edu.wpi.first.wpilibj.TimedRobot;
+import frc.robot.auto.BasicAuto;
 import frc.robot.subsystems.*;
 
 public class Robot extends TimedRobot {
@@ -48,9 +49,13 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousInit() {
+    Pigeon.zero();
+    SwerveManager.pointWheels(0);
+    BasicAuto.init();
   }
 
   @Override
   public void autonomousPeriodic() {
+    BasicAuto.update();    
   }
 }

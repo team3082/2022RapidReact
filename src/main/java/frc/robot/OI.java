@@ -31,10 +31,7 @@ public class OI {
         if(Math.abs(rotate)<0.1)
             rotate = 0;
 
-        double heading = Pigeon.getRotation();
-        System.out.println(heading);
-        heading = heading / 180.0 * Math.PI;
-        SwerveManager.rotateAndDrive(rotate, x, y, heading);
+        SwerveManager.rotateAndDrive(rotate, x, y);
         
         if(m_joystick.getRawButton(4)) {
             Pigeon.zero();

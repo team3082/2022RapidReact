@@ -13,7 +13,7 @@ public class SwerveMod {
     private static final double ticksPerRot = 2048 * 12.8;
 
     public TalonFX m_steer;
-    private TalonFX m_drive;
+    public TalonFX m_drive;
     public CANCoder m_absEncoder;
 
     public double m_xPos;

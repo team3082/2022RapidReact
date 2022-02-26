@@ -20,7 +20,11 @@ public class SwerveManager {
         }
     }
 
-    public static void rotateAndDrive(double rotSpeed, double moveX, double moveY, double heading) {
+    public static void rotateAndDrive(double rotSpeed, double moveX, double moveY) {
+
+        double heading = Pigeon.getRotation();
+        heading = heading / 180.0 * Math.PI;
+
         // Array containing the unclamped movement vectors of each module
         double[][] vectors = new double[m_swerveMods.length][2];
         // The greatest speed of any of the modules. If any one module's speed is
@@ -79,4 +83,12 @@ public class SwerveManager {
         }
     }
 
+    public static double getEncoderPos(int id){
+        return m_swerveMods[id].m_drive.getSelectedSensorPosition();
+    }    
+
+    public static void pointWheels(double radians) {
+        for(int i = 0; i < m_swerveMods.length; i++)
+            m_swerveMods[i].rotateToRad(radians);
+    }
 }
