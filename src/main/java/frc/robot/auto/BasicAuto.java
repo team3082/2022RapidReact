@@ -1,5 +1,7 @@
 package frc.robot.auto;
 
+import frc.robot.Robot;
+import frc.robot.subsystems.Pigeon;
 import frc.robot.subsystems.SwerveManager;
 
 public class BasicAuto {
@@ -59,20 +61,27 @@ public class BasicAuto {
     public static void update(){
         if (isDone)
             return;
-        
-        if(instructions[index].instruction == INST.ROTATE){
-            nextInstruction();
-        } else if (instructions[index].instruction == INST.MOVE){
-            double avgDist = 0;
-            for(int i = 0; i < 4; i++){
-                avgDist += Math.abs(start[i]-SwerveManager.getEncoderPos(i));
-            }
-            avgDist /= 4;
-            if(avgDist >= instructions[index].movedistance){
-                nextInstruction();
-            } else {
-                SwerveManager.rotateAndDrive(0, instructions[index].movex, instructions[index].movey);
-            }
+        switch(instructions[index].instruction){
+            case ROTATE:
+                double pow = Pigeon.correctTurnWithPID(Robot.kDefaultPeriod);
+                if(pow == 0){
+                    nextInstruction();
+                } else {
+                    SwerveManager.rotateAndDrive(pow, 0, 0);
+                }
+                break;
+            case MOVE:
+                double avgDist = 0;
+                for(int i = 0; i < 4; i++){
+                    avgDist += Math.abs(start[i]-SwerveManager.getEncoderPos(i));
+                }
+                avgDist /= 4;
+                if(avgDist >= instructions[index].movedistance){
+                    nextInstruction();
+                } else {
+                    SwerveManager.rotateAndDrive(0, instructions[index].movex, instructions[index].movey);
+                }
+                break;
         }
     }
 
@@ -84,10 +93,15 @@ public class BasicAuto {
             SwerveManager.rotateAndDrive(0, 0, 0);
             return;
         }
-        if(instructions[index].instruction == INST.MOVE){
-            for(int i = 0; i < 4; i++){
-                start[i] = SwerveManager.getEncoderPos(i); 
-            }
+        switch(instructions[index].instruction){
+            case ROTATE:
+                Pigeon.setTargetAngle(instructions[index].targetangle);
+                break;
+            case MOVE:
+                for(int i = 0; i < 4; i++){
+                    start[i] = SwerveManager.getEncoderPos(i); 
+                }
+                break;
         }
     } 
 
