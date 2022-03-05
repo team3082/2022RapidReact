@@ -1,6 +1,8 @@
 package frc.robot;
 import edu.wpi.first.wpilibj.Joystick;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Pigeon;
+import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.SwerveManager;
 public class OI {
     static Joystick m_joystick;
@@ -16,9 +18,9 @@ public class OI {
         boost = boost * 0.7 + 0.3;
 
 
-        double x = m_joystick.getRawAxis(4);
-        double y = -1* m_joystick.getRawAxis(5);
-        double rotate = m_joystick.getRawAxis(0);
+        double x = m_joystick.getRawAxis(0);
+        double y = -1* m_joystick.getRawAxis(1);
+        double rotate = m_joystick.getRawAxis(4);
 
         x *= boost;
         y *= boost;
@@ -36,5 +38,10 @@ public class OI {
         if(m_joystick.getRawButton(4)) {
             Pigeon.zero();
         }
+
+        
+        Shooter.shooter_intake(m_joystick.getRawButton(5));
+        Shooter.shooter(m_joystick.getRawAxis(2));
+        Intake.full_throttle_intake(m_joystick.getRawButton(6));
     }
 }

@@ -1,7 +1,5 @@
 package frc.robot;
-import com.ctre.phoenix.sensors.CANCoder;
 
-import edu.wpi.first.wpilibj.CAN;
 import edu.wpi.first.wpilibj.TimedRobot;
 import frc.robot.auto.BasicAuto;
 import frc.robot.subsystems.*;
@@ -13,6 +11,8 @@ public class Robot extends TimedRobot {
     SwerveManager.init();
     OI.init();
     Pigeon.init();
+    Shooter.init();
+    Intake.init();
   }
 
   @Override
