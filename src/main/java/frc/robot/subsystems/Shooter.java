@@ -6,40 +6,39 @@ import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 
 public class Shooter {
-  static VictorSPX shooter_intake_victor;
-  static TalonFX shooter_falcon;
+  private static VictorSPX m_handoff;
+  private static TalonFX m_flywheel;
   
-  static public void init() 
-  {
-    shooter_intake_victor = new VictorSPX(11);
-    shooter_falcon = new TalonFX(10);
-    shooter_intake_victor.configFactoryDefault();
-    shooter_falcon.configFactoryDefault();
-    shooter_intake_victor.setInverted(true);
-    shooter_falcon.setInverted(true);
-    shooter_falcon.setNeutralMode(NeutralMode.Coast);
-    shooter_falcon.setNeutralMode(NeutralMode.Coast);
-    shooter_falcon.config_kP(0, 1);
-    shooter_falcon.config_kI(0, 0);
-    shooter_falcon.config_kD(0, 0);
-    shooter_falcon.configClosedLoopPeriod(0, 1750);
+  public static void init() {
+    m_handoff = new VictorSPX(11);
+    m_flywheel = new TalonFX(10);
+    m_handoff.configFactoryDefault();
+    m_flywheel.configFactoryDefault();
+    m_handoff.setInverted(true);
+    m_flywheel.setInverted(true);
+    m_flywheel.setNeutralMode(NeutralMode.Coast);
+    m_flywheel.setNeutralMode(NeutralMode.Coast);
+    m_flywheel.config_kP(0, 1);
+    m_flywheel.config_kI(0, 0);
+    m_flywheel.config_kD(0, 0);
+    m_flywheel.configClosedLoopPeriod(0, 1750);
     // 17,760
   }
 
-  static public void shooter(double shooter_control) 
-  {
-    shooter_falcon.set(ControlMode.PercentOutput, shooter_control);
-    System.out.printf("%.02f\n", shooter_falcon.getSelectedSensorVelocity() / 2048 * 0.5 * 10 * 60);
+  public static void setShooterSpeed(double shooter_control) {
+    m_flywheel.set(ControlMode.PercentOutput, shooter_control);
   }
-  static public void shooter_intake(Boolean shooter_intake_control)
-  {
-    if(shooter_intake_control)
-    {
-      shooter_intake_victor.set(ControlMode.PercentOutput, -1);
-    }
-    else
-    {
-      shooter_intake_victor.set(ControlMode.PercentOutput, 0);
+
+  //WARNING: MIGHT BE WRONG
+  public static void setShooterRPM(double rpm){
+    m_flywheel.set(ControlMode.Velocity, (rpm*2048)/(60*10));
+  }
+
+  public static void setHandoffEnabled(Boolean shooter_intake_control) {
+    if (shooter_intake_control) {
+      m_handoff.set(ControlMode.PercentOutput, -1);
+    } else {
+      m_handoff.set(ControlMode.PercentOutput, 0);
     }
   }
 
