@@ -7,14 +7,14 @@ public class Pigeon {
     private static Pigeon2 pigeon;
 
 
-    private static double lastError = 0;
-    private static double ISum = 0;
-    private static double Kp = 0;
-    private static double Ki = 0;
-    private static double Kd = 0;
-    private static double max = 0;
-    private static double targetAngle;
-    private static double deadband = 0;
+    private static double m_lastError = 0;
+    private static double m_ISum = 0;
+    private static double m_Kp = 0;
+    private static double m_Ki = 0;
+    private static double m_Kd = 0;
+    private static double m_max = 0;
+    private static double m_targetAngle;
+    private static double m_deadband = 0;
 
 
     public static void init() {
@@ -41,18 +41,18 @@ public class Pigeon {
     }
 
     public static void initPID(double p, double i, double d, double max, double deadband) {
-        lastError = 0;
-        ISum = 0;
-        Kp = p;
-        Ki = i;
-        Kd = d;
+        m_lastError = 0;
+        m_ISum = 0;
+        m_Kp = p;
+        m_Ki = i;
+        m_Kd = d;
 
-        Pigeon.max = max;
-        Pigeon.deadband = deadband;
+        Pigeon.m_max = max;
+        Pigeon.m_deadband = deadband;
     }
 
     public static void setTargetAngle(double target) {
-        Pigeon.targetAngle = target;
+        Pigeon.m_targetAngle = target;
     }
 
     private static double calculateDestinationPID(double pigAng)
@@ -61,7 +61,7 @@ public class Pigeon {
         int numRot = (int) Math.floor(pigAng / 360);
 
         // The target pigeon angle
-        double target = numRot * 360 + targetAngle;
+        double target = numRot * 360 + m_targetAngle;
         double targetPlus = target + 360;
         double targetMinus = target - 360;
 
@@ -88,21 +88,21 @@ public class Pigeon {
         double currentAngle = getRotation();
         double error = calculateDestinationPID(currentAngle) - currentAngle;
         
-        ISum += dt*(error + lastError)/2;
-        double derivative = (error - lastError) / dt;
+        m_ISum += dt*(error + m_lastError)/2;
+        double derivative = (error - m_lastError) / dt;
         
-        lastError = error;
+        m_lastError = error;
 
-        double Pout = Kp * error;
-        double Iout = Ki * ISum;
-        double Dout = Kd * derivative;
+        double Pout = m_Kp * error;
+        double Iout = m_Ki * m_ISum;
+        double Dout = m_Kd * derivative;
         double correctionPower =  Pout + Iout + Dout;
         
-        if (Math.abs(error)>deadband) {
-            if (correctionPower>max) {
-                correctionPower = max;
-            } else if (correctionPower<-max) {
-                correctionPower = -max;
+        if (Math.abs(error)>m_deadband) {
+            if (correctionPower>m_max) {
+                correctionPower = m_max;
+            } else if (correctionPower<-m_max) {
+                correctionPower = -m_max;
             }
             System.out.println(correctionPower + " : " + currentAngle);
         } else {
