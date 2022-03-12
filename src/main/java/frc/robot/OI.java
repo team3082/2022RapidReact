@@ -1,5 +1,6 @@
 package frc.robot;
 import edu.wpi.first.wpilibj.Joystick;
+import frc.robot.subsystems.AutoAlign;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Pigeon;
 import frc.robot.subsystems.Shooter;
@@ -20,18 +21,31 @@ public class OI {
 
         double x = m_joystick.getRawAxis(0);
         double y = -1* m_joystick.getRawAxis(1);
-        double rotate = m_joystick.getRawAxis(4);
+        double rotate = 0.0;
+
+        if(!m_joystick.getRawButton(1)){
+            rotate = m_joystick.getRawAxis(4);
+            rotate *= boost;
+            if(Math.abs(rotate)<0.1)
+                rotate = 0;
+        } else {
+            if(!AutoAlign.hasTarget()){
+                System.out.println("NO TARGET!!");
+            } else {
+                System.out.println(AutoAlign.getAngle());
+                double offset = AutoAlign.getAngle();
+                Pigeon.setTargetAngle(Pigeon.getRotation()+offset);
+                rotate = Pigeon.correctTurnWithPID(20);
+            }
+        }
+
 
         x *= boost;
         y *= boost;
-        rotate *= boost;
-
         if(Math.hypot(x, y) < 0.1){
             x = 0;
             y = 0;
         }
-        if(Math.abs(rotate)<0.1)
-            rotate = 0;
 
         SwerveManager.rotateAndDrive(rotate, x, y);
         
@@ -39,7 +53,6 @@ public class OI {
             Pigeon.zero();
         }
 
-        
         Shooter.setHandoffEnabled(m_joystick.getRawButton(5));
         Shooter.setShooterSpeed(m_joystick.getRawAxis(2));
         Intake.setEnabled(m_joystick.getRawButton(6));

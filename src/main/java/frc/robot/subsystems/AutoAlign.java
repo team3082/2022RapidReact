@@ -12,15 +12,15 @@ public class AutoAlign {
     }
 
     public static boolean hasTarget(){
-        return m_networkTable.getEntry("target").getBoolean(false);
+        return m_networkTable.getEntry("hub_seen").getBoolean(false);
     }
 
     public static double getAngle(){
-        return m_networkTable.getEntry("angle").getDouble(0.0);
+        return m_networkTable.getEntry("hub_ang").getDouble(0.0);
     }
 
     public static double getDistance(){
-        return m_networkTable.getEntry("distance").getDouble(12.5);
+        return m_networkTable.getEntry("hub_dist").getDouble(12.5);
     }
 
 }
