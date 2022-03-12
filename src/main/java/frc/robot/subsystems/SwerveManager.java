@@ -3,7 +3,8 @@ package frc.robot.subsystems;
 public class SwerveManager {
 
     private static SwerveMod[] m_swerveMods;
-    private static final double ticksPerRotation = 2048 * 12.8;
+    private static final double ticksPerRotationSteer = 2048 * 12.8;
+    private static final double ticksPerRotationDrive = 2048 * 8.14;
 
     public static void init() {
         m_swerveMods = new SwerveMod[] {
@@ -88,16 +89,16 @@ public class SwerveManager {
         return m_swerveMods[id].m_drive.getSelectedSensorPosition();
     }    
 
-    public static double getDriveMotorDistancePerTickManual(int id) {
-        return m_swerveMods[id].m_drive.getSelectedSensorPosition()/ticksPerRotation*(3*Math.PI);
+    public static double getManualDistance(int id) {
+        return m_swerveMods[id].m_drive.getSelectedSensorPosition()/ticksPerRotationDrive*(3*Math.PI);
     }
 
-    public static double getDriveMotorDistancePerTickVelocity(int id) {
-        return m_swerveMods[id].m_drive.getSelectedSensorVelocity()*10/ticksPerRotation*(3*Math.PI);
+    public static double getVelocityDistance(int id) {
+        return m_swerveMods[id].m_drive.getSelectedSensorVelocity()*10/ticksPerRotationDrive*(3*Math.PI);
     }
 
-    public static double getSteerMotorAnglePerTick(int id) {
-        return m_swerveMods[id].m_steer.getSelectedSensorPosition()/ticksPerRotation*2*Math.PI;
+    public static double getAngle(int id) {
+        return m_swerveMods[id].m_steer.getSelectedSensorPosition()/ticksPerRotationSteer*2*Math.PI;
     }
 
     public static void pointWheels(double radians) {

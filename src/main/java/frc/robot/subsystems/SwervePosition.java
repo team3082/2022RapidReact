@@ -15,20 +15,20 @@ public class SwervePosition {
 
     public static void coordinatePositionManual(){
         for (int i = 0; i < 4; i++) {
-            double currentDriveMotorDistance = SwerveManager.getDriveMotorDistancePerTickManual(i);
+            double currentDriveMotorDistance = SwerveManager.getManualDistance(i);
             double driveMotor0Change = currentDriveMotorDistance - previousDriveDistance[i];
             previousDriveDistance[i] = currentDriveMotorDistance;
-            xPosition += Math.sin(SwerveManager.getSteerMotorAnglePerTick(i))*driveMotor0Change;
-            yPosition += Math.cos(SwerveManager.getSteerMotorAnglePerTick(i))*driveMotor0Change;
+            xPosition += Math.sin(SwerveManager.getAngle(i))*driveMotor0Change;
+            yPosition += Math.cos(SwerveManager.getAngle(i))*driveMotor0Change;
         }
     }
 
     public static void coordinatePositionVelocity(){
         for (int i = 0; i < 4; i++) {
-            double driveMotorDistance = SwerveManager.getDriveMotorDistancePerTickVelocity(i);
+            double driveMotorDistance = SwerveManager.getVelocityDistance(i);
             double number = (driveMotorDistance+previousDriveDistanceVelocity[i])/2;
-            xPosition += Math.sin(SwerveManager.getSteerMotorAnglePerTick(i))*number*0.02;
-            yPosition += Math.cos(SwerveManager.getSteerMotorAnglePerTick(i))*number*0.02;
+            xPosition += Math.sin(SwerveManager.getAngle(i))*number*0.02;
+            yPosition += Math.cos(SwerveManager.getAngle(i))*number*0.02;
             previousDriveDistanceVelocity[i] = driveMotorDistance;
         }
     }

@@ -40,8 +40,8 @@ public class OI {
         }
 
         
-        Shooter.shooter_intake(m_joystick.getRawButton(5));
-        Shooter.shooter(m_joystick.getRawAxis(2));
-        Intake.full_throttle_intake(m_joystick.getRawButton(6));
+        Shooter.setHandoffEnabled(m_joystick.getRawButton(5));
+        Shooter.setShooterSpeed(m_joystick.getRawAxis(2));
+        Intake.setEnabled(m_joystick.getRawButton(6));
     }
 }
