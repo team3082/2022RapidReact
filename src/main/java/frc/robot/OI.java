@@ -1,4 +1,6 @@
 package frc.robot;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Joystick;
 import frc.robot.subsystems.AutoAlign;
 import frc.robot.subsystems.Intake;
@@ -7,8 +9,11 @@ import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.SwerveManager;
 public class OI {
     static Joystick m_joystick;
+    static NetworkTable m_nt;
 
     public static void init(){
+        m_nt = NetworkTableInstance.getDefault().getTable("shooter");
+        m_nt.getEntry("rpm").setDouble(0.0);
         m_joystick = new Joystick(0);
     }
 
@@ -54,7 +59,8 @@ public class OI {
         }
 
         Shooter.setHandoffEnabled(m_joystick.getRawButton(5));
-        Shooter.setShooterSpeed(m_joystick.getRawAxis(2));
+        //Shooter.setShooterSpeed(m_joystick.getRawAxis(2));
+        Shooter.setShooterRPM(m_nt.getEntry("rpm").getDouble(0.0));
         Intake.setEnabled(m_joystick.getRawButton(6));
     }
 }
