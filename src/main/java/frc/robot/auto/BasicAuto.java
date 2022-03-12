@@ -1,8 +1,11 @@
 package frc.robot.auto;
 
 import frc.robot.Robot;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Pigeon;
+import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.SwerveManager;
+import frc.robot.subsystems.SwervePosition;
 
 public class BasicAuto {
     
@@ -10,7 +13,10 @@ public class BasicAuto {
     enum INST 
     {
         MOVE(),
+        MOVETOCOORD(),
         ROTATE(),
+        INTAKE(),
+        SHOOT(),
     }
 
     public static class AutoFrame
@@ -32,6 +38,29 @@ public class BasicAuto {
             frame.movedistance = distance; // do unit conversion from meters to ticks here
             return frame;
         }
+        static public AutoFrame MoveToCoord(double xDest, double yDest)
+        {
+            AutoFrame frame = new AutoFrame();
+            frame.instruction = INST.MOVETOCOORD;
+            frame.movex = xDest;
+            frame.movey = yDest;
+            return frame;
+        }
+        static public AutoFrame Intake(boolean intakeOn)
+        {
+            AutoFrame frame = new AutoFrame();
+            frame.instruction = INST.INTAKE;
+            frame.intakeOn = intakeOn;
+            return frame;
+        }
+        static public AutoFrame Shoot(double rpm)
+        {
+            AutoFrame frame = new AutoFrame();
+            frame.instruction = INST.SHOOT;
+            frame.rpm = rpm;
+            return frame;
+        }
+
 
         private AutoFrame() {} 
 
@@ -40,6 +69,8 @@ public class BasicAuto {
         double movedistance;
         double movex;
         double movey;
+        boolean intakeOn;
+        double rpm;
 
         double targetangle;
     }
@@ -54,7 +85,7 @@ public class BasicAuto {
         index = 0;
         instructions = new AutoFrame[]
         {
-
+            AutoFrame.MoveToCoord(24, 24)
         };
     }
 
@@ -82,6 +113,11 @@ public class BasicAuto {
                     SwerveManager.rotateAndDrive(0, instructions[index].movex, instructions[index].movey);
                 }
                 break;
+            case MOVETOCOORD:
+                if(Math.hypot(instructions[index].movex - SwervePosition.xPosition, instructions[index].movey - SwervePosition.yPosition) < 12){
+                    nextInstruction();
+                }
+                break;
         }
     }
 
@@ -96,13 +132,27 @@ public class BasicAuto {
         switch(instructions[index].instruction){
             case ROTATE:
                 Pigeon.setTargetAngle(instructions[index].targetangle);
+                
                 break;
             case MOVE:
                 for(int i = 0; i < 4; i++){
                     start[i] = SwerveManager.getEncoderPos(i); 
                 }
                 break;
+            case INTAKE:
+               Intake.setEnabled(instructions[index].intakeOn); 
+               break;
+            case SHOOT:
+                Shooter.setShooterRPM(instructions[index].rpm);
+               break;
+            case MOVETOCOORD:
+                double moveX = instructions[index].movex - SwervePosition.xPosition;
+                double moveY = instructions[index].movey - SwervePosition.yPosition;
+                double hyp = Math.hypot(moveX, moveY);
+                moveX /= hyp*3;
+                moveY /= hyp*3;
+                SwerveManager.rotateAndDrive(0, moveX, moveY);
+                break;
         }
     } 
-
 }
