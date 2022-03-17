@@ -36,9 +36,9 @@ public class SwerveMod {
         m_steer.configSelectedFeedbackSensor(TalonFXFeedbackDevice.IntegratedSensor, 0, 30);
         m_steer.configNeutralDeadband(0.001, 30);
 		m_steer.config_kF(0, 0, 30);
-		m_steer.config_kP(0, 0.5, 30);
-		m_steer.config_kI(0, 0.01, 30);
-		m_steer.config_kD(0, 0.1, 30);
+		m_steer.config_kP(0, 0.8, 30);
+		m_steer.config_kI(0, 0.0, 30);
+		m_steer.config_kD(0, 0.0, 30);
         m_steer.configMotionCruiseVelocity(20000, 30);
 		m_steer.configMotionAcceleration(40000, 30);
 

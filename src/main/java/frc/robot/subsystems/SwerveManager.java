@@ -29,9 +29,6 @@ public class SwerveManager {
 
         // Array containing the unclamped movement vectors of each module
         double[][] vectors = new double[m_swerveMods.length][2];
-        // The greatest speed of any of the modules. If any one module's speed is
-        // greater than 1.0, all of the speeds are scaled down.
-        double maxSpeed = 1.0;
 
         // Multiply the movement vector by a rotation matrix to compensate for the pigeon's heading
         double relMoveX = moveX *  Math.cos(heading) + moveY * Math.sin(heading);
@@ -43,6 +40,10 @@ public class SwerveManager {
             maxModPosMagnitude = Math.max(maxModPosMagnitude,
                     Math.hypot(m_swerveMods[i].m_yPos, m_swerveMods[i].m_xPos));
         }
+
+        // The greatest speed of any of the modules. If any one module's speed is
+        // greater than 1.0, all of the speeds are scaled down.
+        double maxSpeed = 1.0;
 
         // Calculate unclamped movement vectors
         for (int i = 0; i < m_swerveMods.length; i++) {
@@ -72,17 +73,11 @@ public class SwerveManager {
             double power = Math.hypot(vectors[i][0], vectors[i][1]) / maxSpeed;
 
             // Drive the swerve modules
-            if (Math.abs(power) > 0.1)
-                m_swerveMods[i].rotateToRad(direction);
+            m_swerveMods[i].rotateToRad(direction);
             m_swerveMods[i].drive(power);
         }
 
 
-
-        for(int i =0; i < m_swerveMods.length; i++)
-        {
-            //System.out.println(i + ": " + m_swerveMods[i].m_absEncoder.getAbsolutePosition() + " __ " + m_swerveMods[i].m_steer.getSelectedSensorPosition());
-        }
     }
 
     public static double getEncoderPos(int id){

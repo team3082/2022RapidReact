@@ -11,6 +11,7 @@ public class Robot extends TimedRobot {
     SwerveManager.init();
     OI.init();
     Pigeon.init();
+    Pigeon.initPID(0.08, 0, 0.02, 0.18, 1.0);
     Shooter.init();
     Intake.init();
   }
@@ -49,9 +50,12 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousInit() {
+    
     Pigeon.zero();
+
     SwerveManager.pointWheels(0);
-    BasicAuto.init();
+    System.out.println("auto");
+    BasicAuto.init();    
   }
 
   @Override

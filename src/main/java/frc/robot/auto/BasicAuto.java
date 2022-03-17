@@ -83,6 +83,7 @@ public class BasicAuto {
 
     public static void init(){
         index = 0;
+        isDone = false;
         instructions = new AutoFrame[]
         {
             AutoFrame.MoveToCoord(24, 24)
