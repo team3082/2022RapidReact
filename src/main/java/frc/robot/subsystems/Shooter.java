@@ -18,7 +18,7 @@ public class Shooter {
     m_flywheel.setInverted(true);
     m_flywheel.setNeutralMode(NeutralMode.Coast);
     m_flywheel.setNeutralMode(NeutralMode.Coast);
-    m_flywheel.config_kP(0, 1);
+    m_flywheel.config_kP(0, 0.03);
     m_flywheel.config_kI(0, 0);
     m_flywheel.config_kD(0, 0);
     m_flywheel.configClosedLoopPeriod(0, 1750);
