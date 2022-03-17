@@ -39,8 +39,8 @@ public class OI {
             } else {
                 System.out.println(AutoAlign.getAngle());
                 double offset = AutoAlign.getAngle();
-                Pigeon.setTargetAngle(Pigeon.getRotation()+offset);
-                rotate = Pigeon.correctTurnWithPID(20);
+                Pigeon.setTargetAngle(Pigeon.getRotation()-offset);
+                rotate = Pigeon.correctTurnWithPID(0.02);
             }
         }
 
