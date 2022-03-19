@@ -47,7 +47,11 @@ public class SwervePosition {
             xVel += Math.sin(angle)*driveMotorSpeed;
             yVel += Math.cos(angle)*driveMotorSpeed;
         }
-        double heading = Pigeon.getPitch(); 
+
+        xVel /= 4.0;
+        yVel /= 4.0;
+
+        double heading = Pigeon.getPitch()*Math.PI/180; 
 
         double xVelAbs = xVel *  Math.cos(heading) + yVel * Math.sin(heading);
         double yVelAbs = xVel * -Math.sin(heading) + yVel * Math.cos(heading);

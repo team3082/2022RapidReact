@@ -4,6 +4,7 @@ import com.ctre.phoenix.sensors.Pigeon2;
 
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import frc.robot.robotmath.RMath;
 
 public class Pigeon {
 
@@ -16,6 +17,7 @@ public class Pigeon {
     private static double m_Ki = 0;
     private static double m_Kd = 0;
     private static double m_max = 0;
+    private static double m_scale = 0;
     private static double m_targetAngle;
     private static double m_deadband = 0;
 
@@ -60,7 +62,7 @@ public class Pigeon {
         return pigeon.getPitch();
     }
 
-    public static void initPID(double p, double i, double d, double max, double deadband) {
+    public static void initPID(double p, double i, double d, double max, double scale, double deadband) {
         m_lastError = 0;
         m_ISum = 0;
         m_Kp = p;
@@ -68,6 +70,7 @@ public class Pigeon {
         m_Kd = d;
 
         Pigeon.m_max = max;
+        Pigeon.m_scale = scale;
         Pigeon.m_deadband = deadband;
 
         if(m_tuningmode) {
@@ -84,29 +87,7 @@ public class Pigeon {
 
     private static double calculateDestinationPID(double pigAng)
     {
-        // The number of full rotations the bot has made
-        int numRot = (int) Math.floor(pigAng / 360);
-
-        // The target pigeon angle
-        double target = numRot * 360 + m_targetAngle;
-        double targetPlus = target + 360;
-        double targetMinus = target - 360;
-
-        // The true destination for the bot to rotate to
-        double destination;
-
-        // Determine if, based on the current angle, it should stay in the same
-        // rotation, enter the next, or return to the previous.
-        if (Math.abs(target - pigAng) < Math.abs(targetPlus - pigAng)
-                && Math.abs(target - pigAng) < Math.abs(targetMinus - pigAng)) {
-            destination = target;
-        } else if (Math.abs(targetPlus - pigAng) < Math.abs(targetMinus - pigAng)) {
-            destination = targetPlus;
-        } else {
-            destination = targetMinus;
-        }
-
-        return destination;
+        return RMath.angleDiff(pigAng, m_targetAngle, 360);
     }
 
 
@@ -128,18 +109,20 @@ public class Pigeon {
         double Dout = m_Kd * derivative / 180.0;
         double correctionPower =  Pout + Iout + Dout;
         
-        if (Math.abs(error)>m_deadband) {
+        if (Math.abs(error)>m_deadband) { // || Math.abs(correctionPower) < m_scale * 0.01) {
             if (correctionPower>m_max) {
                 correctionPower = m_max;
             } else if (correctionPower<-m_max) {
                 correctionPower = -m_max;
             }
-            System.out.println(correctionPower + " : " + currentAngle);
+            
+            System.out.printf("%.02f - %.02f : %.02f\n", error, correctionPower, currentAngle);
+            //System.out.println(error + " " + correctionPower + " : " + currentAngle);
         } else {
             correctionPower = 0;
         }
 
-        return correctionPower;
+        return correctionPower * m_scale;
     }
 
 }

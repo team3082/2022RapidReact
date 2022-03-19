@@ -8,10 +8,10 @@ public class SwerveManager {
 
     public static void init() {
         m_swerveMods = new SwerveMod[] {
-                new SwerveMod(2, 1, -1, -1, 253.213),
-                new SwerveMod(4, 3, -1,  1, 202.500),
-                new SwerveMod(6, 5,  1,  1, 253.125),
-                new SwerveMod(8, 7,  1, -1, 127.178)
+                new SwerveMod(2, 1, -1, -1, 253.389, 0),
+                new SwerveMod(4, 3, -1,  1, 202.412, 0),
+                new SwerveMod(6, 5,  1,  1, 249.434, 0),
+                new SwerveMod(8, 7,  1, -1, 129.990, 0),
         };
     }
     
@@ -73,7 +73,8 @@ public class SwerveManager {
             double power = Math.hypot(vectors[i][0], vectors[i][1]) / maxSpeed;
 
             // Drive the swerve modules
-            m_swerveMods[i].rotateToRad(direction);
+            if(power != 0)
+                m_swerveMods[i].rotateToRad(direction);
             m_swerveMods[i].drive(power);
         }
 
@@ -89,7 +90,7 @@ public class SwerveManager {
     }
 
     public static double getVelocityDistance(int id) {
-        return m_swerveMods[id].m_drive.getSelectedSensorVelocity()*10/ticksPerRotationDrive*(3*Math.PI);
+        return m_swerveMods[id].m_drive.getSelectedSensorVelocity()*10/ticksPerRotationDrive*(4*Math.PI);
     }
 
     public static double getAngle(int id) {

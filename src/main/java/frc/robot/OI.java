@@ -1,4 +1,6 @@
 package frc.robot;
+import com.ctre.phoenix.sensors.Pigeon2;
+
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Joystick;
@@ -21,7 +23,7 @@ public class OI {
 
 
         double boost = m_joystick.getRawAxis(3);
-        boost = boost * 0.7 + 0.3;
+        boost = boost * 0.8 + 0.2;
 
 
         double x = m_joystick.getRawAxis(0);
@@ -29,20 +31,24 @@ public class OI {
         double rotate = 0.0;
 
         if(!m_joystick.getRawButton(1)){
-            rotate = m_joystick.getRawAxis(4);
-            rotate *= boost;
-            if(Math.abs(rotate)<0.1)
-                rotate = 0;
-        } else {
-            if(!AutoAlign.hasTarget()){
-                System.out.println("NO TARGET!!");
-            } else {
-                System.out.println(AutoAlign.getAngle());
-                double offset = AutoAlign.getAngle();
-                Pigeon.setTargetAngle(Pigeon.getRotation()-offset);
-                rotate = Pigeon.correctTurnWithPID(0.02);
+            double angx = -m_joystick.getRawAxis(4);
+            double angy = -m_joystick.getRawAxis(5);
+            if(Math.hypot(angx, angy) > 0.75)
+            {
+
+                double ang = Math.atan2(angx,angy) * 180.0 / Math.PI;
+                Pigeon.setTargetAngle(ang); 
+                System.out.println("'               " + ang);
+                //rotate = m_joystick.getRawAxis(4);
+                //rotate *= boost;
+                //if(Math.abs(rotate)<0.1)
+                //    rotate = 0;
             }
+        } else {
+            AutoAlign.update();
+            //System.out.println(AutoAlign.getAngle());
         }
+        rotate = -Pigeon.correctTurnWithPID(0.02);
 
 
         x *= boost;
@@ -51,6 +57,9 @@ public class OI {
             x = 0;
             y = 0;
         }
+
+        if(Math.abs(rotate) < 0.1)
+            rotate = 0;
 
         SwerveManager.rotateAndDrive(rotate, x, y);
         

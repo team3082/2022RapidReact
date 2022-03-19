@@ -95,7 +95,7 @@ public class BasicAuto {
             return;
         switch(instructions[index].instruction){
             case ROTATE:
-                double pow = Pigeon.correctTurnWithPID(Robot.kDefaultPeriod);
+                double pow = -Pigeon.correctTurnWithPID(Robot.kDefaultPeriod);
                 if(pow == 0){
                     nextInstruction();
                 } else {

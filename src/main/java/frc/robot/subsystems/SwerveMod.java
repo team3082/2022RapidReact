@@ -21,17 +21,21 @@ public class SwerveMod {
 
     private boolean inverted;
 
-    private double m_encoderOffset;
+    private double m_cancoderOffset;
+    private double m_falconOffset;
 
-    public SwerveMod(int steerId, int driveId, double x, double y, double encoderOffset) {
-        m_steer = new TalonFX(steerId);
-        m_drive = new TalonFX(driveId);
-        m_absEncoder = new CANCoder(steerId);
+    private int m_steerID;
+
+    public SwerveMod(int steerID, int driveID, double x, double y, double cancoderOffset, double falconOffset) {
+        m_steerID = steerID;
+        m_steer = new TalonFX(steerID);
+        m_drive = new TalonFX(driveID);
+        m_absEncoder = new CANCoder(steerID);
 
         m_xPos = x;
         m_yPos = y;
-        // Configure encoders/PID
 
+        // Configure encoders/PID
         m_steer.configFactoryDefault();
         m_steer.configSelectedFeedbackSensor(TalonFXFeedbackDevice.IntegratedSensor, 0, 30);
         m_steer.configNeutralDeadband(0.001, 30);
@@ -52,19 +56,27 @@ public class SwerveMod {
         m_drive.configMotionCruiseVelocity(100, 30);
 		m_drive.configMotionAcceleration(400, 30);
         
+        
+        m_drive.setInverted(false);
+        m_steer.setInverted(false);
         m_drive.setNeutralMode(NeutralMode.Brake);
         m_steer.setNeutralMode(NeutralMode.Brake);
 
         m_absEncoder.configSensorInitializationStrategy(SensorInitializationStrategy.BootToAbsolutePosition);
         m_absEncoder.configMagnetOffset(0);
         m_absEncoder.configAbsoluteSensorRange(AbsoluteSensorRange.Unsigned_0_to_360);
-        m_encoderOffset = encoderOffset;
+
+
+        m_cancoderOffset = cancoderOffset;
+        m_falconOffset = falconOffset;
+
         resetSteerSensor();
     }
 
     public void resetSteerSensor()
     {
-        double pos = m_absEncoder.getAbsolutePosition() - m_encoderOffset;
+        // Align the falcon to the cancoder
+        double pos = m_absEncoder.getAbsolutePosition() - m_cancoderOffset;
         pos = pos / 360.0 * ticksPerRot;
         m_steer.setSelectedSensorPosition( pos );
         m_steer.set(TalonFXControlMode.MotionMagic, pos);
