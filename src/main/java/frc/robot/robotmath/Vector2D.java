@@ -4,9 +4,16 @@ import edu.wpi.first.math.Vector;
 import frc.robot.subsystems.SwerveManager;
 
 public class Vector2D {
+    public static final Vector2D kZero = new Vector2D();
+    
     public double x;
     public double y; 
     
+    public Vector2D() {
+        x = 0;
+        y = 0;
+    }
+
     public Vector2D(double x, double y){
         this.x = x;
         this.y = y;
@@ -30,16 +37,18 @@ public class Vector2D {
     public Vector2D norm(){
         // x/=mag();
         // y/= mag();
-       
-        return new Vector2D(x/mag(), y/mag());
+        double m = mag();
+        return div(m);
     }
 
     public Vector2D rotate(double angle){
-        double rotateY = x * -Math.sin(angle) + y * Math.cos(angle);
         double rotateX = x *  Math.cos(angle) + y * Math.sin(angle);
+        double rotateY = x * -Math.sin(angle) + y * Math.cos(angle);
         return new Vector2D(rotateX, rotateY);
     }
    
-    
+    public double atan(){
+        return Math.atan2(y, x);
+    }
 
 }

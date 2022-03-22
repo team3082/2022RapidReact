@@ -1,6 +1,7 @@
 package frc.robot.auto;
 
 import frc.robot.Robot;
+import frc.robot.robotmath.Vector2D;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Pigeon;
 import frc.robot.subsystems.Shooter;
@@ -99,7 +100,7 @@ public class BasicAuto {
                 if(pow == 0){
                     nextInstruction();
                 } else {
-                    SwerveManager.rotateAndDrive(pow, 0, 0);
+                    SwerveManager.rotateAndDrive(pow, Vector2D.kZero);
                 }
                 break;
             case MOVE:

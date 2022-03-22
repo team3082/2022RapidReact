@@ -1,5 +1,8 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.wpilibj.drive.Vector2d;
+import frc.robot.robotmath.Vector2D;
+
 public class SwerveManager {
 
     private static SwerveMod[] m_swerveMods;
@@ -22,17 +25,18 @@ public class SwerveManager {
         }
     }
 
-    public static void rotateAndDrive(double rotSpeed, double moveX, double moveY) {
+    public static void rotateAndDrive(double rotSpeed, Vector2D move) {
 
         double heading = Pigeon.getRotation();
         heading = heading / 180.0 * Math.PI;
 
         // Array containing the unclamped movement vectors of each module
-        double[][] vectors = new double[m_swerveMods.length][2];
+        Vector2D[] vectors = new Vector2D[m_swerveMods.length];
 
         // Multiply the movement vector by a rotation matrix to compensate for the pigeon's heading
-        double relMoveX = moveX *  Math.cos(heading) + moveY * Math.sin(heading);
-        double relMoveY = moveX * -Math.sin(heading) + moveY * Math.cos(heading);
+        Vector2D relMove = move.rotate(heading);
+        //double relMoveX = moveX *  Math.cos(heading) + moveY * Math.sin(heading);
+        //double relMoveY = moveX * -Math.sin(heading) + moveY * Math.cos(heading);
 
         // The greatest magnitude of any module's distance from the center of rotation
         double maxModPosMagnitude = 0;
@@ -52,16 +56,19 @@ public class SwerveManager {
             // position on the circle around the center of rotation, normalizing the
             // resulting vector according to maxModPosMagnitude (such that the magnitude of
             // the largest vector is 1), and scaling it by a factor of rotSpeed.
-            double rotateX = (-1 * m_swerveMods[i].m_yPos / maxModPosMagnitude) * rotSpeed;
-            double rotateY = (m_swerveMods[i].m_xPos / maxModPosMagnitude) * rotSpeed;
+            
+            Vector2D rotate = new Vector2D((-1 * m_swerveMods[i].m_yPos / maxModPosMagnitude) * rotSpeed, (m_swerveMods[i].m_xPos / maxModPosMagnitude) * rotSpeed);
+            //double rotateX = (-1 * m_swerveMods[i].m_yPos / maxModPosMagnitude) * rotSpeed;
+            //double rotateY = (m_swerveMods[i].m_xPos / maxModPosMagnitude) * rotSpeed;
 
             // The final movement vector, calculated by summing movement and rotation
             // vectors
-            double x = relMoveX + rotateX;
-            double y = relMoveY + rotateY;
+            Vector2D rotMove = new Vector2D(relMove.x+ rotate.x, relMove.y + rotate.y);
+           // double x = relMoveX + rotate.x;
+            //double y = relMoveY + rotate.y;
 
-            vectors[i] = new double[] { x, y };
-            maxSpeed = Math.max(maxSpeed, Math.hypot(x, y));
+            vectors[i] = new Vector2D ( relMove.x, relMove.y );
+            maxSpeed = Math.max(maxSpeed, Math.hypot(relMove.x, relMove.y));
         }
 
         for (int i = 0; i < m_swerveMods.length; i++) {
@@ -69,8 +76,8 @@ public class SwerveManager {
             // magnitudes based on 'max'. An angle of 0 corresponds with a rightward movement
             // in vector space but causes a forward movement for the motors, so PI/2 must be 
             // subtracted from the vector's direction to compensate.
-            double direction = Math.atan2(vectors[i][1], vectors[i][0]) - Math.PI * 0.5;
-            double power = Math.hypot(vectors[i][0], vectors[i][1]) / maxSpeed;
+            double direction = vectors[i].atan() - Math.PI * 0.5;
+            double power = vectors[i].mag() / maxSpeed;
 
             // Drive the swerve modules
             if(power != 0)
