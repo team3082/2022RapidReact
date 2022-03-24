@@ -4,6 +4,7 @@ import com.ctre.phoenix.sensors.Pigeon2;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Joystick;
+import frc.robot.robotmath.Vector2D;
 import frc.robot.subsystems.AutoAlign;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Pigeon;
@@ -28,8 +29,7 @@ public class OI {
         boost = boost * 0.8 + 0.2;
 
 
-        double x = m_joystick.getRawAxis(0);
-        double y = -1* m_joystick.getRawAxis(1);
+        Vector2D drive = new Vector2D(m_joystick.getRawAxis(0), -1* m_joystick.getRawAxis(1));
         double rotate = 0.0;
 
         if(!m_joystick.getRawButton(1)){
@@ -53,17 +53,15 @@ public class OI {
         rotate = -Pigeon.correctTurnWithPID(0.02);
 
 
-        x *= boost;
-        y *= boost;
-        if(Math.hypot(x, y) < 0.1){
-            x = 0;
-            y = 0;
+        drive = drive.mul(boost);
+        if(drive.mag() < 0.1){
+            drive = new Vector2D(0, 0); 
         }
 
         if(Math.abs(rotate) < 0.1)
             rotate = 0;
 
-        SwerveManager.rotateAndDrive(rotate, x, y);
+        SwerveManager.rotateAndDrive(rotate, drive.x, drive.y);
         
         if(m_joystick.getRawButton(4)) {
             Pigeon.zero();

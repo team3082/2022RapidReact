@@ -1,17 +1,21 @@
 package frc.robot.subsystems;
 
+import frc.robot.robotmath.Vector2D;
+
 public class SwervePosition {
 
     public static double[] previousDriveDistance;
     public static double[] previousDriveDistanceVelocity; 
     public static double xPosition = 0, yPosition = 0;
     public static double lastXVel = 0, lastYVel = 0;
+    public static Vector2D lastVel = new Vector2D();
 
     public static void init() {
         previousDriveDistance = new double[]{0, 0, 0, 0};
         previousDriveDistanceVelocity = new double[]{0, 0, 0, 0};
         xPosition = 0;
         yPosition = 0;
+        lastVel = new Vector2D();
         lastXVel = 0;
         lastYVel = 0;
     }
@@ -38,31 +42,32 @@ public class SwervePosition {
 */
 
 
-    public static double[] absVel(){
-        double yVel = 0;
-        double xVel = 0;
+    public static Vector2D absVel(){
+        Vector2D vel = new Vector2D();
+        //double yVel = 0;
+       // double xVel = 0;
         for (int i = 0; i < 4; i++) {
             double driveMotorSpeed = SwerveManager.getVelocityDistance(i);
             double angle = SwerveManager.getAngle(i);
-            xVel += Math.sin(angle)*driveMotorSpeed;
-            yVel += Math.cos(angle)*driveMotorSpeed;
+            vel.x += Math.sin(angle)*driveMotorSpeed;
+            vel.y += Math.cos(angle)*driveMotorSpeed;
         }
 
-        xVel /= 4.0;
-        yVel /= 4.0;
+        vel.x /= 4.0;
+        vel.y /= 4.0;
 
         double heading = Pigeon.getPitch()*Math.PI/180; 
+        
+        double xVelAbs = vel.x *  Math.cos(heading) + vel.y * Math.sin(heading);
+        double yVelAbs = vel.x * -Math.sin(heading) + vel.y * Math.cos(heading);
 
-        double xVelAbs = xVel *  Math.cos(heading) + yVel * Math.sin(heading);
-        double yVelAbs = xVel * -Math.sin(heading) + yVel * Math.cos(heading);
-
-        return new double[]{xVelAbs, yVelAbs};
+        return new Vector2D(xVelAbs, yVelAbs);
     }
 
-    public static double[] velocityPosition() {
-        double[] array = absVel();
-        double xVel = array[0];
-        double yVel = array[1];
+    public static Vector2D velocityPosition() {
+        Vector2D xyVel = absVel();
+        double xVel = xyVel.x;
+        double yVel = xyVel.y;
 
         xPosition += (xVel+lastXVel)/2*0.02;
         yPosition += (yVel+lastYVel)/2*0.02;
@@ -70,7 +75,7 @@ public class SwervePosition {
         lastXVel = xVel;
         lastYVel = yVel;
         
-        return new double[]{xPosition, yPosition};
+        return new Vector2D(xPosition, yPosition);
     }
 
     //double relMoveX = moveX *  Math.cos(heading) + moveY * Math.sin(heading);
