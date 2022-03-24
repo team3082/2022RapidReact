@@ -1,8 +1,5 @@
 package frc.robot.robotmath;
 
-import edu.wpi.first.math.Vector;
-import frc.robot.subsystems.SwerveManager;
-
 public class Vector2D {
     public static final Vector2D kZero = new Vector2D();
     

@@ -61,7 +61,7 @@ public class OI {
         if(Math.abs(rotate) < 0.1)
             rotate = 0;
 
-        SwerveManager.rotateAndDrive(rotate, drive.x, drive.y);
+        SwerveManager.rotateAndDrive(rotate, drive);
         
         if(m_joystick.getRawButton(4)) {
             Pigeon.zero();

@@ -8,6 +8,8 @@ import com.ctre.phoenix.sensors.AbsoluteSensorRange;
 import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.SensorInitializationStrategy;
 
+import frc.robot.robotmath.Vector2D;
+
 public class SwerveMod {
 
     private static final double ticksPerRot = 2048 * 12.8;
@@ -16,8 +18,7 @@ public class SwerveMod {
     public TalonFX m_drive;
     public CANCoder m_absEncoder;
 
-    public double m_xPos;
-    public double m_yPos;
+    public Vector2D m_pos;
 
     private boolean inverted;
 
@@ -32,8 +33,7 @@ public class SwerveMod {
         m_drive = new TalonFX(driveID);
         m_absEncoder = new CANCoder(steerID);
 
-        m_xPos = x;
-        m_yPos = y;
+        m_pos = new Vector2D(x, y);
 
         // Configure encoders/PID
         m_steer.configFactoryDefault();

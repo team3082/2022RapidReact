@@ -6,8 +6,6 @@ import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 
-import org.opencv.core.Mat;
-
 import frc.robot.robotmath.Vector2D;
 
 public class Shooter {

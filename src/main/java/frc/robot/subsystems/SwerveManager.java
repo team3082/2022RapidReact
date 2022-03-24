@@ -1,6 +1,5 @@
 package frc.robot.subsystems;
 
-import edu.wpi.first.wpilibj.drive.Vector2d;
 import frc.robot.robotmath.Vector2D;
 
 public class SwerveManager {
@@ -42,7 +41,7 @@ public class SwerveManager {
         double maxModPosMagnitude = 0;
         for (int i = 0; i < m_swerveMods.length; i++) {
             maxModPosMagnitude = Math.max(maxModPosMagnitude,
-                    Math.hypot(m_swerveMods[i].m_yPos, m_swerveMods[i].m_xPos));
+                    m_swerveMods[i].m_pos.mag());
         }
 
         // The greatest speed of any of the modules. If any one module's speed is
@@ -57,18 +56,14 @@ public class SwerveManager {
             // resulting vector according to maxModPosMagnitude (such that the magnitude of
             // the largest vector is 1), and scaling it by a factor of rotSpeed.
             
-            Vector2D rotate = new Vector2D((-1 * m_swerveMods[i].m_yPos / maxModPosMagnitude) * rotSpeed, (m_swerveMods[i].m_xPos / maxModPosMagnitude) * rotSpeed);
-            //double rotateX = (-1 * m_swerveMods[i].m_yPos / maxModPosMagnitude) * rotSpeed;
-            //double rotateY = (m_swerveMods[i].m_xPos / maxModPosMagnitude) * rotSpeed;
+            Vector2D rotate = new Vector2D((-1 * m_swerveMods[i].m_pos.y / maxModPosMagnitude) * rotSpeed, (m_swerveMods[i].m_pos.x / maxModPosMagnitude) * rotSpeed);
 
             // The final movement vector, calculated by summing movement and rotation
             // vectors
-            Vector2D rotMove = new Vector2D(relMove.x+ rotate.x, relMove.y + rotate.y);
-           // double x = relMoveX + rotate.x;
-            //double y = relMoveY + rotate.y;
+            Vector2D rotMove = relMove.add(rotate);;
 
-            vectors[i] = new Vector2D ( relMove.x, relMove.y );
-            maxSpeed = Math.max(maxSpeed, Math.hypot(relMove.x, relMove.y));
+            vectors[i] = rotMove;
+            maxSpeed = Math.max(maxSpeed, rotMove.mag());
         }
 
         for (int i = 0; i < m_swerveMods.length; i++) {

@@ -6,18 +6,14 @@ public class SwervePosition {
 
     public static double[] previousDriveDistance;
     public static double[] previousDriveDistanceVelocity; 
-    public static double xPosition = 0, yPosition = 0;
-    public static double lastXVel = 0, lastYVel = 0;
+    public static Vector2D position;
     public static Vector2D lastVel = new Vector2D();
 
     public static void init() {
         previousDriveDistance = new double[]{0, 0, 0, 0};
         previousDriveDistanceVelocity = new double[]{0, 0, 0, 0};
-        xPosition = 0;
-        yPosition = 0;
+        position = Vector2D.kZero;
         lastVel = new Vector2D();
-        lastXVel = 0;
-        lastYVel = 0;
     }
 
     public static void coordinatePositionManual(){
@@ -25,8 +21,8 @@ public class SwervePosition {
             double currentDriveMotorDistance = SwerveManager.getManualDistance(i);
             double driveMotor0Change = currentDriveMotorDistance - previousDriveDistance[i];
             previousDriveDistance[i] = currentDriveMotorDistance;
-            xPosition += Math.sin(SwerveManager.getAngle(i))*driveMotor0Change;
-            yPosition += Math.cos(SwerveManager.getAngle(i))*driveMotor0Change;
+            position.x += Math.sin(SwerveManager.getAngle(i))*driveMotor0Change;
+            position.y += Math.cos(SwerveManager.getAngle(i))*driveMotor0Change;
         }
     }
 
@@ -66,43 +62,34 @@ public class SwervePosition {
 
     public static Vector2D velocityPosition() {
         Vector2D xyVel = absVel();
-        double xVel = xyVel.x;
-        double yVel = xyVel.y;
-
-        xPosition += (xVel+lastXVel)/2*0.02;
-        yPosition += (yVel+lastYVel)/2*0.02;
-
-        lastXVel = xVel;
-        lastYVel = yVel;
-        
-        return new Vector2D(xPosition, yPosition);
+        position = position.add(xyVel.add(lastVel).mul(0.5*0.02));
+        lastVel = xyVel;
+        return position;
     }
 
     //double relMoveX = moveX *  Math.cos(heading) + moveY * Math.sin(heading);
     //double relMoveY = moveX * -Math.sin(heading) + moveY * Math.cos(heading);
 
     //returns array of the robot's angle and distance in INCHES based of manual calculations
-    public static double[] angleDistancePositionManual(){
+    public static double[] positionPolar(){
         
-        double[] pos = new double[]{xPosition, yPosition};
-        
-        double distance = Math.sqrt(Math.pow(pos[0], 2) + Math.pow(pos[1], 2));
-        double angle = Math.atan(pos[1]/pos[0])*(180/Math.PI);
+        double distance = position.mag();
+        double angle = position.atan()*(180/Math.PI);
 
         return new double[]{angle, distance};
         
     }
 
     //returns array of the robot's angle and distance in INCHES based of of sensor velocity
-    public static double[] angleDistancePositionVelocity(){
+    // public static double[] angleDistancePositionVelocity(){
         
-        double[] pos = new double[]{xPosition, yPosition};
+    //     double[] pos = new double[]{xPosition, yPosition};
         
-        double distance = Math.sqrt(Math.pow(pos[0], 2) + Math.pow(pos[1], 2));
-        double angle = Math.atan(pos[1]/pos[0])*(180/Math.PI);
+    //     double distance = Math.sqrt(Math.pow(pos[0], 2) + Math.pow(pos[1], 2));
+    //     double angle = Math.atan(pos[1]/pos[0])*(180/Math.PI);
 
-        return new double[]{angle, distance};
+    //     return new double[]{angle, distance};
         
-    }
+    // }
 
 }

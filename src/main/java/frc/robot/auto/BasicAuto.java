@@ -34,17 +34,16 @@ public class BasicAuto {
         {
             AutoFrame frame = new AutoFrame();
             frame.instruction = INST.MOVE;
-            frame.movex = movex;
-            frame.movey = movey;
+            frame.move.x = movex;
+            frame.move.y = movey;
             frame.movedistance = distance; // do unit conversion from meters to ticks here
             return frame;
         }
-        static public AutoFrame MoveToCoord(double xDest, double yDest)
+        static public AutoFrame MoveToCoord(Vector2D dest)
         {
             AutoFrame frame = new AutoFrame();
             frame.instruction = INST.MOVETOCOORD;
-            frame.movex = xDest;
-            frame.movey = yDest;
+            frame.move = dest;
             return frame;
         }
         static public AutoFrame Intake(boolean intakeOn)
@@ -68,8 +67,7 @@ public class BasicAuto {
         INST instruction;
         
         double movedistance;
-        double movex;
-        double movey;
+        Vector2D move;
         boolean intakeOn;
         double rpm;
 
@@ -87,7 +85,7 @@ public class BasicAuto {
         isDone = false;
         instructions = new AutoFrame[]
         {
-            AutoFrame.MoveToCoord(24, 24)
+            AutoFrame.MoveToCoord(new Vector2D(24, 24))
         };
     }
 
@@ -112,11 +110,12 @@ public class BasicAuto {
                 if(avgDist >= instructions[index].movedistance){
                     nextInstruction();
                 } else {
-                    SwerveManager.rotateAndDrive(0, instructions[index].movex, instructions[index].movey);
+                    SwerveManager.rotateAndDrive(0, instructions[index].move);
                 }
                 break;
             case MOVETOCOORD:
-                if(Math.hypot(instructions[index].movex - SwervePosition.xPosition, instructions[index].movey - SwervePosition.yPosition) < 12){
+                //if(Math.hypot(instructions[index].move.x - SwervePosition.xPosition, instructions[index].move.y - SwervePosition.yPosition) < 12){
+                if (instructions[index].move.sub(SwervePosition.position).mag() < 12) {
                     nextInstruction();
                 }
                 break;
@@ -128,7 +127,7 @@ public class BasicAuto {
         System.out.println("next");
         if (instructions.length <= index){
             isDone = true;
-            SwerveManager.rotateAndDrive(0, 0, 0);
+            SwerveManager.rotateAndDrive(0, Vector2D.kZero);
             return;
         }
         switch(instructions[index].instruction){
@@ -148,12 +147,9 @@ public class BasicAuto {
                 Shooter.setShooterRPM(instructions[index].rpm);
                break;
             case MOVETOCOORD:
-                double moveX = instructions[index].movex - SwervePosition.xPosition;
-                double moveY = instructions[index].movey - SwervePosition.yPosition;
-                double hyp = Math.hypot(moveX, moveY);
-                moveX /= hyp*3;
-                moveY /= hyp*3;
-                SwerveManager.rotateAndDrive(0, moveX, moveY);
+                Vector2D direction = instructions[index].move.sub(SwervePosition.position).norm();
+                Vector2D move = direction.div(3.0);
+                SwerveManager.rotateAndDrive(0, move);
                 break;
         }
     } 
