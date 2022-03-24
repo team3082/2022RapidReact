@@ -15,8 +15,10 @@ public class OI {
 
     public static void init(){
         m_nt = NetworkTableInstance.getDefault().getTable("shooter");
-        m_nt.getEntry("rpm").setDouble(0.0);
+        m_nt.getEntry("target_dist").setDouble(0.0);
         m_joystick = new Joystick(0);
+        m_nt.getEntry("kp").setDouble(2.4);
+
     }
 
     public static void joystickInput(){
@@ -45,7 +47,7 @@ public class OI {
                 //    rotate = 0;
             }
         } else {
-            AutoAlign.update();
+            AutoAlign.setAngle();
             //System.out.println(AutoAlign.getAngle());
         }
         rotate = -Pigeon.correctTurnWithPID(0.02);
@@ -67,9 +69,34 @@ public class OI {
             Pigeon.zero();
         }
 
-        Shooter.setHandoffEnabled(m_joystick.getRawButton(5));
         //Shooter.setShooterSpeed(m_joystick.getRawAxis(2));
-        Shooter.setShooterRPM(m_nt.getEntry("rpm").getDouble(0.0));
         Intake.setEnabled(m_joystick.getRawButton(6));
+        
+
+
+        if(m_joystick.getRawButton(5))
+        {
+            
+            Shooter.setRPMForDist(AutoAlign.m_distAvg, 2.4);
+
+            if(rotate == 0 && Shooter.atSetpoint())
+                Shooter.setHandoffEnabled(true);
+        }
+        else
+        {
+            Shooter.setRPMForDist(0, 2.4);
+            Shooter.setHandoffEnabled(false);
+        }
+
+
+
+        double kp = m_nt.getEntry("kp").getDouble(2.4);
+
+//        Shooter.setRPMForDist(m_nt.getEntry("target_dist").getDouble(0.0), kp);
+        m_nt.getEntry("target_rpm").setDouble(Shooter.m_targetSpeed * Shooter.kToRPM);
+        m_nt.getEntry("current_rpm").setDouble(Shooter.m_flywheel.getSelectedSensorVelocity() * Shooter.kToRPM);
+        m_nt.getEntry("at_setpoint").setBoolean(Shooter.atSetpoint());
+
+
     }
 }

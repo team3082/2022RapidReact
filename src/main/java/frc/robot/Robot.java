@@ -11,9 +11,10 @@ public class Robot extends TimedRobot {
     SwerveManager.init();
     OI.init();
     Pigeon.init();
-    Pigeon.initPID(0.08, 0, 0.02, 0.18, 1.0);
+    Pigeon.initPID(5.0, 3.0, 0, 1.0, 0.25, 1.0);
     Shooter.init();
     Intake.init();
+    AutoAlign.init();
   }
 
   @Override
@@ -28,6 +29,7 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     OI.joystickInput();
+    AutoAlign.update();
   }
 
   @Override

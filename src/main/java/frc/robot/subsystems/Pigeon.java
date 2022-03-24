@@ -99,7 +99,7 @@ public class Pigeon {
         double currentAngle = getRotation();
         double error = calculateDestinationPID(currentAngle) - currentAngle;
         
-        m_ISum += dt*(error + m_lastError)/2;
+        m_ISum += dt*(error/ 180.0 + m_lastError/ 180.0)/2;
         double derivative = (error - m_lastError) / dt;
         
         m_lastError = error;

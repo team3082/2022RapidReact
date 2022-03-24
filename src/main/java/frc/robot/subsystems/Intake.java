@@ -9,7 +9,7 @@ public class Intake {
   public static void init() {
     m_intakeVictor = new VictorSPX(12);
     m_intakeVictor.configFactoryDefault();
-    m_intakeVictor.setInverted(true);
+    m_intakeVictor.setInverted(false);
   }
 
   public static void setSpeed(double power) {
