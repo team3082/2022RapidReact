@@ -1,30 +1,37 @@
 package frc.robot.robotmath;
 
 public class RMath {
+    /** 
+     * Converts an target angle within a certain range to an absolute target angle, based
+     * on the best path the robot should rotate to get to this angle.
+     * @param currentAngle The robot's current angle
+     * @param targetAngle The angle the robot should rotate to, bounded by angleRange
+     * @param angleRange The range of one full rotation, usually 360
+     * @return The absolute angle the robot should rotate to 
+     * */ 
+    public static double targetAngleAbsolute(double currentAngle, double targetAngle, double angleRange) {
 
-    public static double angleDiff(double current_angle, double target_angle, double angle_range) {
-
-        target_angle = target_angle % 360;
-        if(target_angle < 0)
-            target_angle += 360;
+        targetAngle = targetAngle % angleRange;
+        if(targetAngle < 0)
+            targetAngle += angleRange;
 
         // The number of full rotations the bot has made
-        int numRot = (int) Math.floor(current_angle / angle_range);
+        int numRot = (int) Math.floor(currentAngle / angleRange);
 
         // The target pigeon angle
-        double target = numRot * angle_range + target_angle;
-        double targetPlus = target + angle_range;
-        double targetMinus = target - angle_range;
+        double target = numRot * angleRange + targetAngle;
+        double targetPlus = target + angleRange;
+        double targetMinus = target - angleRange;
 
         // The true destination for the bot to rotate to
         double destination;
 
         // Determine if, based on the current angle, it should stay in the same
         // rotation, enter the next, or return to the previous.
-        if (Math.abs(target - current_angle) <= Math.abs(targetPlus - current_angle)
-         && Math.abs(target - current_angle) <= Math.abs(targetMinus - current_angle)) {
+        if (Math.abs(target - currentAngle) <= Math.abs(targetPlus - currentAngle)
+         && Math.abs(target - currentAngle) <= Math.abs(targetMinus - currentAngle)) {
             destination = target;
-        } else if (Math.abs(targetPlus - current_angle) < Math.abs(targetMinus - current_angle)) {
+        } else if (Math.abs(targetPlus - currentAngle) < Math.abs(targetMinus - currentAngle)) {
             destination = targetPlus;
         } else {
             destination = targetMinus;

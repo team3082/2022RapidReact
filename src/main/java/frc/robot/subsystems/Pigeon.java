@@ -87,7 +87,7 @@ public class Pigeon {
 
     private static double calculateDestinationPID(double pigAng)
     {
-        return RMath.angleDiff(pigAng, m_targetAngle, 360);
+        return RMath.targetAngleAbsolute(pigAng, m_targetAngle, 360);
     }
 
 
