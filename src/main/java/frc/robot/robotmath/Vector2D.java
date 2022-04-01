@@ -1,7 +1,6 @@
 package frc.robot.robotmath;
 
 public class Vector2D {
-    public static final Vector2D kZero = new Vector2D();
     
     public double x;
     public double y; 
@@ -70,10 +69,21 @@ public class Vector2D {
     }
 
     /**
-    * Calculate the angle of the vector using Math.atan2
+    * Calculate the angle of the vector's direction using Math.atan2
+    * Circle begins at (1,0), positive rotating counter clockwise 
+    @return Angle in radians 
     */
     public double atan(){
         return Math.atan2(y, x);
+    }
+
+    
+    /**
+    * Circle begins at (0,1), positive rotating clockwise
+    @return Angle in degrees 
+    */
+    public double atanDeg(){
+        return Math.atan2(-x, y) * 180.0 / Math.PI;
     }
 
 }

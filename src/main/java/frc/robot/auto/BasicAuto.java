@@ -15,9 +15,11 @@ public class BasicAuto {
     {
         MOVE(),
         MOVETOCOORD(),
+        MOVETOANDLOOKAT(),
         ROTATE(),
         INTAKE(),
         SHOOT(),
+
     }
 
     public static class AutoFrame
@@ -29,7 +31,13 @@ public class BasicAuto {
             frame.targetangle = angle;
             return frame;
         }
-        
+        static public AutoFrame MoveToAndLookAt(double x, double y)
+        {
+            AutoFrame frame = new AutoFrame();
+            frame.instruction = INST.MOVETOANDLOOKAT;
+            frame.move = new Vector2D(x,y);
+            return frame;
+        }        
         static public AutoFrame Move(double movex, double movey, double distance)
         {
             AutoFrame frame = new AutoFrame();
@@ -39,11 +47,11 @@ public class BasicAuto {
             frame.movedistance = distance; // do unit conversion from meters to ticks here
             return frame;
         }
-        static public AutoFrame MoveToCoord(Vector2D dest)
+        static public AutoFrame MoveTo(double x, double y)
         {
             AutoFrame frame = new AutoFrame();
             frame.instruction = INST.MOVETOCOORD;
-            frame.move = dest;
+            frame.move = new Vector2D(x,y);
             return frame;
         }
         static public AutoFrame Intake(boolean intakeOn)
@@ -85,21 +93,32 @@ public class BasicAuto {
         isDone = false;
         instructions = new AutoFrame[]
         {
-            AutoFrame.MoveToCoord(new Vector2D(24, 24))
+            // Intake
+            AutoFrame.MoveToAndLookAt(36, 56),
+            AutoFrame.MoveToAndLookAt(36-117, 56-15),
+            AutoFrame.Rotate(135),
+            //AutoFrame.BeginAutoAlign(),
+            AutoFrame.MoveTo(36-117-42, 56-15+154),
+
         };
+
+        
+        beginInstruction();
     }
 
     public static void update(){
         if (isDone)
             return;
+        double pow = 0;
+        pow = Pigeon.correctTurnWithPID();
+        Vector2D movement = new Vector2D(0,0);
         switch(instructions[index].instruction){
             case ROTATE:
-                double pow = -Pigeon.correctTurnWithPID(Robot.kDefaultPeriod);
-                if(pow == 0){
+                //if(pow == 0){
                     nextInstruction();
-                } else {
-                    SwerveManager.rotateAndDrive(pow, Vector2D.kZero);
-                }
+                //} else {
+                    //SwerveManager.rotateAndDrive(pow, new Vector2D());
+                //}
                 break;
             case MOVE:
                 double avgDist = 0;
@@ -110,16 +129,33 @@ public class BasicAuto {
                 if(avgDist >= instructions[index].movedistance){
                     nextInstruction();
                 } else {
-                    SwerveManager.rotateAndDrive(0, instructions[index].move);
                 }
                 break;
             case MOVETOCOORD:
                 //if(Math.hypot(instructions[index].move.x - SwervePosition.xPosition, instructions[index].move.y - SwervePosition.yPosition) < 12){
-                if (instructions[index].move.sub(SwervePosition.position).mag() < 12) {
+                if (instructions[index].move.sub(SwervePosition.getPosition()).mag() < 1.2) {
                     nextInstruction();
+                }
+                else {
+                    Vector2D direction = instructions[index].move.sub(SwervePosition.getPosition()).norm();
+                    movement = direction.mul(0.1);
+                }
+                break;
+            case MOVETOANDLOOKAT:
+                if (instructions[index].move.sub(SwervePosition.getPosition()).mag() < 1.2) {
+                    nextInstruction();
+                }
+                else {
+                    Vector2D direction = instructions[index].move.sub(SwervePosition.getPosition()).norm();
+                    movement = direction.mul(0.1);
+                    
+                    Pigeon.setTargetAngle(direction.atanDeg());
+                    //pow = -Pigeon.correctTurnWithPID();
                 }
                 break;
         }
+
+        SwerveManager.rotateAndDrive(pow, movement);
     }
 
     private static void nextInstruction(){
@@ -127,9 +163,15 @@ public class BasicAuto {
         System.out.println("next");
         if (instructions.length <= index){
             isDone = true;
-            SwerveManager.rotateAndDrive(0, Vector2D.kZero);
+            SwerveManager.rotateAndDrive(0, new Vector2D());
             return;
         }
+
+        beginInstruction();
+    }
+
+    private static void beginInstruction() {
+        
         switch(instructions[index].instruction){
             case ROTATE:
                 Pigeon.setTargetAngle(instructions[index].targetangle);
@@ -141,15 +183,14 @@ public class BasicAuto {
                 }
                 break;
             case INTAKE:
-               Intake.setEnabled(instructions[index].intakeOn); 
-               break;
+                Intake.setEnabled(instructions[index].intakeOn); 
+                break;
             case SHOOT:
                 Shooter.setShooterRPM(instructions[index].rpm);
-               break;
+                break;
             case MOVETOCOORD:
-                Vector2D direction = instructions[index].move.sub(SwervePosition.position).norm();
-                Vector2D move = direction.div(3.0);
-                SwerveManager.rotateAndDrive(0, move);
+                break;
+            case MOVETOANDLOOKAT:
                 break;
         }
     } 

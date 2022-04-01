@@ -12,7 +12,9 @@ import frc.robot.robotmath.Vector2D;
 
 public class SwerveMod {
 
-    private static final double ticksPerRot = 2048 * 12.8;
+    private static final double ticksPerRotationSteer = 2048 * 12.8;
+    private static final double ticksPerRotationDrive = 2048 * 8.14;
+
 
     public TalonFX m_steer;
     public TalonFX m_drive;
@@ -40,7 +42,7 @@ public class SwerveMod {
         m_steer.configSelectedFeedbackSensor(TalonFXFeedbackDevice.IntegratedSensor, 0, 30);
         m_steer.configNeutralDeadband(0.001, 30);
 		m_steer.config_kF(0, 0, 30);
-		m_steer.config_kP(0, 0.8, 30);
+		m_steer.config_kP(0, 1.1, 30);
 		m_steer.config_kI(0, 0.0, 30);
 		m_steer.config_kD(0, 0.0, 30);
         m_steer.configMotionCruiseVelocity(20000, 30);
@@ -48,6 +50,7 @@ public class SwerveMod {
 
         m_drive.configFactoryDefault();
         m_drive.configSelectedFeedbackSensor(TalonFXFeedbackDevice.IntegratedSensor, 0, 30);
+        m_drive.setSelectedSensorPosition(0);
         m_drive.configNeutralDeadband(0.001, 30);
 		m_drive.config_kF(0, 0, 30);
 		m_drive.config_kP(0, 0.5, 30);
@@ -57,7 +60,7 @@ public class SwerveMod {
 		m_drive.configMotionAcceleration(400, 30);
         
         
-        m_drive.setInverted(false);
+        m_drive.setInverted(true);
         m_steer.setInverted(false);
         m_drive.setNeutralMode(NeutralMode.Brake);
         m_steer.setNeutralMode(NeutralMode.Brake);
@@ -70,6 +73,8 @@ public class SwerveMod {
         m_cancoderOffset = cancoderOffset;
         m_falconOffset = falconOffset;
 
+        inverted = false;
+
         resetSteerSensor();
     }
 
@@ -77,7 +82,7 @@ public class SwerveMod {
     {
         // Align the falcon to the cancoder
         double pos = m_absEncoder.getAbsolutePosition() - m_cancoderOffset;
-        pos = pos / 360.0 * ticksPerRot;
+        pos = pos / 360.0 * ticksPerRotationSteer;
         m_steer.setSelectedSensorPosition( pos );
         m_steer.set(TalonFXControlMode.MotionMagic, pos);
 
@@ -89,7 +94,7 @@ public class SwerveMod {
 
     // Rotates to angle given in radians
     public void rotateToRad(double angle) {
-        rotate(angle / (2 * Math.PI) * ticksPerRot);
+        rotate((angle - Math.PI * 0.5) / (2 * Math.PI) * ticksPerRotationSteer);
     }
 
     // Rotates to a position given in ticks
@@ -97,12 +102,12 @@ public class SwerveMod {
         double motorPos = m_steer.getSelectedSensorPosition();
 
         // The number of full rotations the motor has made
-        int numRot = (int) Math.floor(motorPos / ticksPerRot);
+        int numRot = (int) Math.floor(motorPos / ticksPerRotationSteer);
 
         // The target motor position dictated by the joystick, in motor ticks
-        double joystickTarget = numRot * ticksPerRot + toAngle;
-        double joystickTargetPlus = joystickTarget + ticksPerRot;
-        double joystickTargetMinus = joystickTarget - ticksPerRot;
+        double joystickTarget = numRot * ticksPerRotationSteer + toAngle;
+        double joystickTargetPlus = joystickTarget + ticksPerRotationSteer;
+        double joystickTargetMinus = joystickTarget - ticksPerRotationSteer;
 
         // The true destination for the motor to rotate to
         double destination;
@@ -121,12 +126,12 @@ public class SwerveMod {
         // If the target position is farther than a quarter rotation away from the
         // current position, invert its direction instead of rotating it the full
         // distance
-        if (Math.abs(destination - motorPos) > ticksPerRot / 4.0) {
+        if (Math.abs(destination - motorPos) > ticksPerRotationSteer / 4.0) {
             inverted = true;
             if (destination > motorPos)
-                destination -= ticksPerRot / 2.0;
+                destination -= ticksPerRotationSteer / 2.0;
             else
-                destination += ticksPerRot / 2.0;
+                destination += ticksPerRotationSteer / 2.0;
         } else {
             inverted = false;
         }
@@ -135,5 +140,22 @@ public class SwerveMod {
 
         
     }
+
+    // Returns an angle in radians
+    public double getSteerAngle() {
+        return m_steer.getSelectedSensorPosition() / ticksPerRotationSteer * Math.PI * 2;
+    }
+
+
+    public double getDrivePosition() {
+        return m_drive.getSelectedSensorPosition() / ticksPerRotationSteer * (3*Math.PI);
+    }
+
+    public double getDriveVelocity() {
+        return m_drive.getSelectedSensorVelocity() * 10 / ticksPerRotationDrive * (4*Math.PI);
+    }
+
+    
+
 
 }

@@ -14,11 +14,25 @@ public class Shooter {
 
     public static double m_targetSpeed = 0;
     
-    public static final double kToRPM = 1.0 / 2048.0 * 10.0 * 60.0 * (0.64/0.95);
+    // falcon / wheel 
+    public static final double kShooterBeltRatio = 1; // 0.95/0.64
+
+
+    //  (Rotations)  v  (1  _mins) v  ( 1 _secs  )  v  ( falc rev) v ( 2048 _enc)
+    //  (  Minutes)  ^  (60 _secs) ^  (10 _100 ms)  ^  (wheel rev) ^ ( 1 _rots  ) 
+    // 
+    public static final double kRPMToVel = 2048.0 * kShooterBeltRatio / 60.0 / 10.0;
+    public static final double kVelToRPM = 10.0 * 60.0 / 2048.0 / kShooterBeltRatio;
+    
+    
+
+    // Only fire when within this many RPM of our target
+    private static final double kDeadbandRPM = 50.0;
+
 
 
     public static void init() {
-        m_handoff = new VictorSPX(11);
+        m_handoff = new VictorSPX(8);
         m_flywheel = new TalonFX(10);
         m_handoff.configFactoryDefault();
         m_flywheel.configFactoryDefault();
@@ -31,18 +45,19 @@ public class Shooter {
         m_flywheel.config_kI(0, 0.004);
         m_flywheel.config_kD(0, 0);
         m_flywheel.configClosedLoopPeriod(0, 1750);
+        
         // 17,760
 
         m_targetSpeed = 0;
+
     }
 
     public static void setShooterSpeed(double shooter_control) {
         m_flywheel.set(ControlMode.PercentOutput, shooter_control);
     }
 
-    //WARNING: MIGHT BE WRONG
     public static void setShooterRPM(double rpm){
-        m_flywheel.set(ControlMode.Velocity, (rpm*2048)/(60*10));
+        m_flywheel.set(ControlMode.Velocity, rpm*kRPMToVel);
     }
 
     public static void setHandoffEnabled(Boolean shooter_intake_control) {
@@ -55,24 +70,33 @@ public class Shooter {
 
     // Distance in feet
     // Mass in kg
-    public static void setRPMForDist(double dist_ft, double p)
+    public static void setRPMForDist(double dist_ft, double kp)
     {
         // Approximate masses
-        final double wheel_mass_kg = 0.275;
+        
+        // Big Gray
+        //final double wheel_mass_kg = 0.275;
+        //final double wheel_radius_ft = 8 /* inch diameter */ / 2.0 / 12.0;
+        
+        // Small old swerve
+        final double wheel_radius_ft = 6 /* inch diameter */ / 2.0 / 12.0;
+        final double wheel_mass_kg = 0.2 * 2;
+        
         final double ball_mass_kg = 0.225;
 
-        final double wheel_radius_ft = 8 /* inch diameter */ / 2.0 / 12.0;
-
-        final double shooter_gear_ratio = 0.95/0.64;
         final double grav_ftps = -32.2; 
-        final double shooter_angle = (90 - 11) * Math.PI / 180.0;
+        final double shooter_angle = (90 - 11.8) * Math.PI / 180.0;
         final Vector2D shooter_dir = new Vector2D(Math.cos(shooter_angle), Math.sin(shooter_angle));
         final Vector2D hub_pos_ft = new Vector2D(0, 8 + 8/12);
         
-        Vector2D bot_pos_ft = new Vector2D(-dist_ft, 2);
-        Vector2D delta = hub_pos_ft.sub(bot_pos_ft);
+        Vector2D shooter_pos_ft = new Vector2D(-dist_ft, 2);
+        Vector2D delta = hub_pos_ft.sub(shooter_pos_ft);
 
         // The speed the ball should be at when it comes out of the shooter
+        //        
+        // hub_pos_ft.y = (shooter_pos_ft.y) + (speed)(shooter_dir.y)t + (0.5)(grav_ftps)(t^2)
+        // hub_pos_ft.x = (shooter_pos_ft.x) + (speed)(shooter_dir.x)t
+        // 
         double speed = delta.x / ( shooter_dir.x * Math.sqrt( 2.0 * ( delta.y - delta.x*shooter_dir.y/shooter_dir.x ) / grav_ftps ) );
 
         // Angular velocity of shooter
@@ -80,36 +104,45 @@ public class Shooter {
         // Ball  I: 2MR^2/3
         // 
         // (0.5)(I_w)(w_w^2) = (0.5)(m_b)(v_b^2) + (0.5)(I_b)(w_b^2) 
+        //
         double w = Math.sqrt((10.0/6.0) * ball_mass_kg * (speed * speed) / (wheel_mass_kg * (wheel_radius_ft*wheel_radius_ft)));
         
-        // Shooter rotations per second
-        double f = w / (2.0 * Math.PI); 
+        // Shooter rotations per minute
+        double f = w / (2.0 * Math.PI) * 60.0; 
         
-        // Falcon rotations per second
-        double ff = f * shooter_gear_ratio;        
-
+        // Tweak our RPM by some tuning value "kp"
+        f *= kp;
+        
         // Encoder ticks per 100 ms
-        double enc = ff * 2048.0 / 10.0 * p;
+        double enc = f * kRPMToVel;
 
         // Pump it into the wheel!
         m_targetSpeed = enc;
         m_flywheel.set(TalonFXControlMode.Velocity, m_targetSpeed);
 
-        
-        if(Double.isNaN(m_targetSpeed) || m_targetSpeed <= 2048)
+        // If our calculations failed, were very small, or negative, don't run the shooter
+        if(Double.isInfinite(m_targetSpeed) 
+        || Double.isNaN(m_targetSpeed) 
+        || m_targetSpeed <= 2048) {
             m_flywheel.set(TalonFXControlMode.PercentOutput, 0.0);
+        }
         
     }
 
     public static boolean atSetpoint()
     {
-        final double vel_deadband = 50.0 / Shooter.kToRPM;
+        final double vel_deadband = kDeadbandRPM * Shooter.kRPMToVel;
         double vel = m_flywheel.getSelectedSensorVelocity();
 
         double err = Math.abs(vel - m_targetSpeed);
-
         return err < vel_deadband;
     }
 
+    public static void stopVelocityControl() {
+        // If we just set our velocity controller to 0, it would forcefully attempt to stop the shooter
+        // By setting our output to 0, we disable the controller and allow the wheel to coast
+        // This should help us maintain the health of our belts
+        m_flywheel.set(TalonFXControlMode.PercentOutput, 0.0);
+    } 
 
 }

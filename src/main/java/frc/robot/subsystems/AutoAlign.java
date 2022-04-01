@@ -3,65 +3,86 @@
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import frc.robot.robotmath.RTime;
 
 public class AutoAlign {
 
     private static NetworkTable m_networkTable;
-
     private static NetworkTableEntry nt_hub_seen;
     private static NetworkTableEntry nt_hub_ang;
     private static NetworkTableEntry nt_hub_dist;
-    private static NetworkTableEntry nt_hub_dist_avg;
 
     private static boolean m_hubSeen = false;
     public static double m_distAvg = 0;
-    private static double m_targetAngle = 0;
+    private static double m_hubAngle = 0;
+
+    private static double m_lastupdatetime = 0;
 
     public static void init(){
         m_networkTable = NetworkTableInstance.getDefault().getTable("vis");
         nt_hub_seen = m_networkTable.getEntry("hub_seen");
         nt_hub_ang  = m_networkTable.getEntry("hub_ang");
         nt_hub_dist = m_networkTable.getEntry("hub_dist");
-        nt_hub_dist_avg = m_networkTable.getEntry("hub_dist_avg");
-    
+        
+        m_lastupdatetime = 0;
     }
 
-    public static boolean hasTarget(){
-        return nt_hub_seen.getBoolean(false);
-    }
+    //public static boolean hasTarget(){
+    //    return nt_hub_seen.getBoolean(false);
+    //}
 
     public static double getAngle(){
-        return nt_hub_ang.getDouble(0.0);
+        return m_hubAngle;
     }
 
     public static double getDistance(){
-        return nt_hub_dist.getDouble(12.5);
+        return m_distAvg;
     }
 
     public static void update() {
 
-        if(!hasTarget())
+        // If we don't have new data, we can ignore this frame
+        boolean hastarget = nt_hub_seen.getBoolean(false);
+        if(!hastarget)
         {
+            // Haven't seen the hub this frame
             m_hubSeen = false;
             return;    
         }
 
-        m_targetAngle = getAngle();
-        double dist   = getDistance();
-        
-        
-        m_distAvg = m_distAvg * 0.8 + dist * 0.2;
-        nt_hub_dist_avg.setDouble(m_distAvg);
-        
+        // Toggle "hub_seen" back to false so we don't mistakenly recv this frame twice
+        // We do this immediately incase we recv new data during this frame
         m_hubSeen = true;
         nt_hub_seen.setBoolean(false);
+        
+        // New data
+        m_hubAngle  = nt_hub_ang.getDouble(0.0);
+        double dist = nt_hub_dist.getDouble(12.5);
+
+        // Time since last recv from the Pi
+        double curtime = RTime.getTime();
+        double deltatime = curtime - m_lastupdatetime;
+        m_lastupdatetime = curtime;
+        
+        // dt * 2 so half a second is our "full replacement" period
+        double scale = deltatime * 2;
+
+        // Cap off our scale at 1 
+        if(scale > 1.0)
+            scale = 1.0;
+
+        
+        // Combine our last avg with our new dist.
+        // Longer the interval between updates, the more bias our new data has
+        m_distAvg = m_distAvg * (1.0 - scale) + dist * (scale);
+        
     }
 
     public static void setAngle() {
 
         if(m_hubSeen)
         {
-            double absang = Pigeon.getRotation() - m_targetAngle;
+            double absang = Pigeon.getRotation() - m_hubAngle;
             Pigeon.setTargetAngle(absang);
         }
     }
