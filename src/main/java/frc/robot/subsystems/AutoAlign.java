@@ -12,9 +12,9 @@ public class AutoAlign {
     private static NetworkTableEntry nt_hub_ang;
     private static NetworkTableEntry nt_hub_dist;
 
-    private static boolean m_hubSeen = false;
-    public static double m_distAvg = 0;
-    private static double m_hubAngle = 0;
+    private static boolean m_hubSeen  = false;
+    public  static double  m_distAvg  = 10.0;
+    private static double  m_hubAngle = 0.0;
 
     private static double m_lastupdatetime = 0;
 
@@ -25,6 +25,10 @@ public class AutoAlign {
         nt_hub_dist = m_networkTable.getEntry("hub_dist");
         
         m_lastupdatetime = 0;
+
+        m_hubSeen = false;
+        m_hubAngle = 0.0;
+        m_distAvg = 10.0;
     }
 
     //public static boolean hasTarget(){

@@ -17,7 +17,7 @@ public class OI {
         m_nt = NetworkTableInstance.getDefault().getTable("shooter");
         m_nt.getEntry("target_dist").setDouble(0.0);
         m_joystick = new Joystick(0);
-        m_nt.getEntry("kp").setDouble(2.00);
+        m_nt.getEntry("kp").setDouble(1.00);
 
     }
 
@@ -82,7 +82,7 @@ public class OI {
         Intake.setEnabled(m_joystick.getRawButton(6));
         
 
-        double kp = m_nt.getEntry("kp").getDouble(2.00);
+        double kp = m_nt.getEntry("kp").getDouble(1.00);
         if(m_joystick.getRawButton(5)) {
             Shooter.setRPMForDist(AutoAlign.m_distAvg, kp);
             if(rotate == 0 && Shooter.atSetpoint())
@@ -99,7 +99,7 @@ public class OI {
 
 
 
-//        Shooter.setRPMForDist(m_nt.getEntry("target_dist").getDouble(0.0), kp);
+        //Shooter.setRPMForDist(m_nt.getEntry("target_dist").getDouble(0.0), kp);
         m_nt.getEntry("target_rpm").setDouble(Shooter.m_targetSpeed * Shooter.kVelToRPM);
         m_nt.getEntry("current_rpm").setDouble(Shooter.m_flywheel.getSelectedSensorVelocity() * Shooter.kVelToRPM);
         m_nt.getEntry("at_setpoint").setBoolean(Shooter.atSetpoint());

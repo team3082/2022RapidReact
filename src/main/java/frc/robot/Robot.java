@@ -61,7 +61,7 @@ public class Robot extends TimedRobot {
 
 	@Override
 	public void testPeriodic() {
-		SwerveManager.calibrationTest();
+		//SwerveManager.calibrationTest();
 	}
 
 	@Override

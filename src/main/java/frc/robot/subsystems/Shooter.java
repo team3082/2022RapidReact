@@ -27,7 +27,7 @@ public class Shooter {
     
 
     // Only fire when within this many RPM of our target
-    private static final double kDeadbandRPM = 50.0;
+    private static final double kDeadbandRPM = 7.0;
 
 
 
@@ -75,18 +75,14 @@ public class Shooter {
         // Approximate masses
         
         // Big Gray
-        //final double wheel_mass_kg = 0.275;
-        //final double wheel_radius_ft = 8 /* inch diameter */ / 2.0 / 12.0;
+        final double wheel_radius_ft = 8 /* inch diameter */ / 2.0 / 12.0;
         
         // Small old swerve
-        final double wheel_radius_ft = 6 /* inch diameter */ / 2.0 / 12.0;
-        final double wheel_mass_kg = 0.2 * 2;
+        //final double wheel_radius_ft = 6 /* inch diameter */ / 2.0 / 12.0;
         
-        final double ball_mass_kg = 0.225;
-
         final double grav_ftps = -32.2; 
-        final double shooter_angle = (90 - 11.8) * Math.PI / 180.0;
-        final Vector2D shooter_dir = new Vector2D(Math.cos(shooter_angle), Math.sin(shooter_angle));
+        final double shooter_angle = (11.8) * Math.PI / 180.0;
+        final Vector2D shooter_dir = new Vector2D(Math.sin(shooter_angle), Math.cos(shooter_angle));
         final Vector2D hub_pos_ft = new Vector2D(0, 8 + 8/12);
         
         Vector2D shooter_pos_ft = new Vector2D(-dist_ft, 2);
@@ -99,25 +95,43 @@ public class Shooter {
         // 
         double speed = delta.x / ( shooter_dir.x * Math.sqrt( 2.0 * ( delta.y - delta.x*shooter_dir.y/shooter_dir.x ) / grav_ftps ) );
 
+        //final double wheel_mass_kg = 0.275;
+        //final double wheel_mass_kg = 0.2 * 2;
+        //final double ball_mass_kg = 0.225;
+
         // Angular velocity of shooter
         // Wheel I: MR^2 
         // Ball  I: 2MR^2/3
         // 
         // (0.5)(I_w)(w_w^2) = (0.5)(m_b)(v_b^2) + (0.5)(I_b)(w_b^2) 
         //
-        double w = Math.sqrt((10.0/6.0) * ball_mass_kg * (speed * speed) / (wheel_mass_kg * (wheel_radius_ft*wheel_radius_ft)));
-        
+        //double w = Math.sqrt((10.0/6.0) * ball_mass_kg * (speed * speed) / (wheel_mass_kg * (wheel_radius_ft*wheel_radius_ft)));
         // Shooter rotations per minute
-        double f = w / (2.0 * Math.PI) * 60.0; 
+        //double f = w / (2.0 * Math.PI) * 60.0; 
+
+
+        // We treat the shooter like a planetary gearbox
+        //
+        final double hood_radius_ft = 11.5 / 12.0;
+        final double ball_compressed_radius_ft = 0.5 * (hood_radius_ft - wheel_radius_ft);
+        final double path_radius_ft = wheel_radius_ft + ball_compressed_radius_ft;
+
+        // hood_to_ball * ball_to_wheel
+        // ball cancels out
+        // hood_to_wheel
+        final double hood_to_wheel_ratio = hood_radius_ft / wheel_radius_ft;
+
+        double freq = speed / (path_radius_ft * Math.PI) * hood_to_wheel_ratio;
+        double rpm = freq * 60;
         
         // Tweak our RPM by some tuning value "kp"
-        f *= kp;
-        
-        // Encoder ticks per 100 ms
-        double enc = f * kRPMToVel;
+        rpm *= kp;
+
+        // Convert to encoder ticks per 100 ms
+        double vel = rpm * kRPMToVel;
 
         // Pump it into the wheel!
-        m_targetSpeed = enc;
+        m_targetSpeed = vel;
         m_flywheel.set(TalonFXControlMode.Velocity, m_targetSpeed);
 
         // If our calculations failed, were very small, or negative, don't run the shooter
