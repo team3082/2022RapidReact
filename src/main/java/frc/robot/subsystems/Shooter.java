@@ -29,8 +29,6 @@ public class Shooter {
     // Only fire when within this many RPM of our target
     private static final double kDeadbandRPM = 7.0;
 
-
-
     public static void init() {
         m_handoff = new VictorSPX(8);
         m_flywheel = new TalonFX(10);
@@ -157,6 +155,14 @@ public class Shooter {
         // By setting our output to 0, we disable the controller and allow the wheel to coast
         // This should help us maintain the health of our belts
         m_flywheel.set(TalonFXControlMode.PercentOutput, 0.0);
-    } 
+    }
+
+    // --------------------
+    // |OPERATOR OVERRIDES|
+    // --------------------
+    public static void reverse(){
+        m_handoff.set(ControlMode.PercentOutput, 0.5);
+        m_flywheel.set(ControlMode.PercentOutput, -0.3);
+    }
 
 }

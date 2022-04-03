@@ -1,5 +1,6 @@
 package frc.robot.auto;
 
+import frc.robot.robotmath.RTime;
 import frc.robot.robotmath.Vector2D;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Pigeon;
@@ -18,8 +19,8 @@ public class BasicAuto {
         LOOKAT(),
         ROTATE(),
         INTAKE(),
+        REVFORDIST(),
         SHOOT(),
-
     }
 
     public static class AutoFrame
@@ -68,11 +69,17 @@ public class BasicAuto {
             frame.intakeOn = intakeOn;
             return frame;
         }
-        static public AutoFrame Shoot(double rpm)
+        static public AutoFrame RevForDist(double dist)
         {
             AutoFrame frame = new AutoFrame();
+            frame.instruction = INST.REVFORDIST;
+            frame.dist = dist;
+            return frame;
+        }
+        static public AutoFrame Shoot(){
+            AutoFrame frame = new AutoFrame();
             frame.instruction = INST.SHOOT;
-            frame.rpm = rpm;
+            frame.stopTime = Double.MAX_VALUE;
             return frame;
         }
 
@@ -80,11 +87,13 @@ public class BasicAuto {
         private AutoFrame() {} 
 
         INST instruction;
+
+        double stopTime;
         
         double movedistance;
         Vector2D move;
         boolean intakeOn;
-        double rpm;
+        double dist;
 
         double targetangle;
     }
@@ -98,7 +107,7 @@ public class BasicAuto {
     public static void init(){
         index = 0;
         isDone = false;
-        
+        threeBallTohuman();        
         beginInstruction();
     }
 
@@ -115,17 +124,20 @@ public class BasicAuto {
         };
     }
 
-    public static void 3ballTohuman() {
-        Pigeon.setYaw(-90);
+    public static void threeBallTohuman() {
+        //NOT FINISHED!!!!
+        Pigeon.setYaw(90);
         SwervePosition.positionInt = new Vector2D(-86, -32);
         instructions = new AutoFrame[]
         {
-            // Intake
+            AutoFrame.Intake(true),
+            AutoFrame.MoveToAndLookAt(-133, -39),
+            AutoFrame.Intake(false),
+            AutoFrame.RevForDist(Math.hypot(-133, -39)),
             AutoFrame.LookAt(0, 0),
-            AutoFrame.MoveToAndLookAt(36-117, 56-15),
-            AutoFrame.Rotate(135),
-            //AutoFrame.BeginAutoAlign(),
-            AutoFrame.MoveTo(36-117-42, 56-15+154),
+            AutoFrame.Shoot(),
+            AutoFrame.RevForDist(Math.hypot(-133, -39)),
+            AutoFrame.Shoot()
 
         };
     }
@@ -186,8 +198,19 @@ public class BasicAuto {
                 
                 if(Pigeon.atSetpoint())
                     nextInstruction();
-
-
+                break;
+            case SHOOT:
+                if(RTime.getTime() > instructions[index].stopTime){
+                    Shooter.stopVelocityControl();
+                    nextInstruction();
+                    return;
+                }
+                if(Shooter.atSetpoint()){
+                    Shooter.setHandoffEnabled(true);
+                    instructions[index].stopTime = RTime.getTime() + 0.35;   
+                }
+                break;
+            default:
                 break;
         }
 
@@ -211,7 +234,6 @@ public class BasicAuto {
         switch(instructions[index].instruction){
             case ROTATE:
                 Pigeon.setTargetAngle(instructions[index].targetangle);
-                
                 break;
             case MOVE:
                 for(int i = 0; i < 4; i++){
@@ -219,14 +241,14 @@ public class BasicAuto {
                 }
                 break;
             case INTAKE:
-                Intake.setEnabled(instructions[index].intakeOn); 
+                Intake.setEnabled(instructions[index].intakeOn);
+                nextInstruction();
                 break;
-            case SHOOT:
-                Shooter.setShooterRPM(instructions[index].rpm);
+            case REVFORDIST:
+                Shooter.setRPMForDist(instructions[index].dist, 1.0);
+                nextInstruction();
                 break;
-            case MOVETOCOORD:
-                break;
-            case MOVETOANDLOOKAT:
+            default:
                 break;
         }
     } 

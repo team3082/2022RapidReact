@@ -18,7 +18,7 @@ public class Intake {
 
     public static void setEnabled(Boolean intake_control) {
         if (intake_control)
-            m_intakeVictor.set(ControlMode.PercentOutput, 1);
+            m_intakeVictor.set(ControlMode.PercentOutput, 0.75);
         else
             m_intakeVictor.set(ControlMode.PercentOutput, 0);
     }
