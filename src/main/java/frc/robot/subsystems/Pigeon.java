@@ -72,6 +72,10 @@ public class Pigeon {
         m_pigeon.setYaw(0, 10);
     }
 
+    public static void setYaw(double deg) {
+        m_pigeon.setYaw(0, 10);
+    }
+
     // Local to the robot, not the world
     // Pitch, rotates around the X, left to right, axis
     // Tilts forward and backward
@@ -125,6 +129,12 @@ public class Pigeon {
             //m_lastError = 0;
             //m_ISum = 0;
         }
+    }
+
+    public static boolean atSetpoint() {
+        double currentAngle = getRotation();
+        double error = calculateDestinationPID(currentAngle) - currentAngle;
+        return Math.abs(error) <= m_deadband;
     }
 
     private static double calculateDestinationPID(double pigAng) {

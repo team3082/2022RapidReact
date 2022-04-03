@@ -1,6 +1,5 @@
 package frc.robot.auto;
 
-import frc.robot.Robot;
 import frc.robot.robotmath.Vector2D;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Pigeon;
@@ -16,6 +15,7 @@ public class BasicAuto {
         MOVE(),
         MOVETOCOORD(),
         MOVETOANDLOOKAT(),
+        LOOKAT(),
         ROTATE(),
         INTAKE(),
         SHOOT(),
@@ -35,6 +35,13 @@ public class BasicAuto {
         {
             AutoFrame frame = new AutoFrame();
             frame.instruction = INST.MOVETOANDLOOKAT;
+            frame.move = new Vector2D(x,y);
+            return frame;
+        }        
+        static public AutoFrame LookAt(double x, double y)
+        {
+            AutoFrame frame = new AutoFrame();
+            frame.instruction = INST.LOOKAT;
             frame.move = new Vector2D(x,y);
             return frame;
         }        
@@ -91,6 +98,11 @@ public class BasicAuto {
     public static void init(){
         index = 0;
         isDone = false;
+        
+        beginInstruction();
+    }
+
+    public static void basic(){
         instructions = new AutoFrame[]
         {
             // Intake
@@ -101,9 +113,21 @@ public class BasicAuto {
             AutoFrame.MoveTo(36-117-42, 56-15+154),
 
         };
+    }
 
-        
-        beginInstruction();
+    public static void 3ballTohuman() {
+        Pigeon.setYaw(-90);
+        SwervePosition.positionInt = new Vector2D(-86, -32);
+        instructions = new AutoFrame[]
+        {
+            // Intake
+            AutoFrame.LookAt(0, 0),
+            AutoFrame.MoveToAndLookAt(36-117, 56-15),
+            AutoFrame.Rotate(135),
+            //AutoFrame.BeginAutoAlign(),
+            AutoFrame.MoveTo(36-117-42, 56-15+154),
+
+        };
     }
 
     public static void update(){
@@ -152,6 +176,18 @@ public class BasicAuto {
                     Pigeon.setTargetAngle(direction.atanDeg());
                     //pow = -Pigeon.correctTurnWithPID();
                 }
+                break;
+            case LOOKAT:
+                Vector2D direction = instructions[index].move.sub(SwervePosition.getPosition()).norm();
+                movement = new Vector2D(0,0);
+
+                Pigeon.setTargetAngle(direction.atanDeg());
+                //pow = -Pigeon.correctTurnWithPID();
+                
+                if(Pigeon.atSetpoint())
+                    nextInstruction();
+
+
                 break;
         }
 
