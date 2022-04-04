@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 
 public class Intake {
@@ -21,6 +22,10 @@ public class Intake {
             m_intakeVictor.set(ControlMode.PercentOutput, 0.75);
         else
             m_intakeVictor.set(ControlMode.PercentOutput, 0);
+    }
+
+    public static void eject() {
+        m_intakeVictor.set(ControlMode.PercentOutput, -1);
     }
 
 }

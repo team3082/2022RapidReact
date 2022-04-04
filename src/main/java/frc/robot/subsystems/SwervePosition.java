@@ -5,46 +5,24 @@ import frc.robot.robotmath.Vector2D;
 
 public class SwervePosition {
 
-    public static double[] previousDrivePosition;
-    public static Vector2D positionInt;
-    public static Vector2D positionAcc;
-    public static Vector2D absVelocity;
-    public static Vector2D lastVelocity;
+    private static Vector2D position;
+    private static Vector2D localVelocity;
+    private static Vector2D absVelocity;
+    private static Vector2D lastAbsVelocity;
     
+    private static Vector2D positionOffset;
+
     public static void init() {
-        previousDrivePosition = new double[]{0, 0, 0, 0};
-        positionInt  = new Vector2D();
-        positionAcc  = new Vector2D();
-        absVelocity  = new Vector2D();
-        lastVelocity = new Vector2D();
+        localVelocity   = new Vector2D();
+        absVelocity     = new Vector2D();
+        lastAbsVelocity = new Vector2D();
+        position        = new Vector2D();
+        positionOffset  = new Vector2D();
     }
 
-    public static void updatePositionAccumulation(){
-        Vector2D deltapos = new Vector2D();
+    public static void update() {
 
-        for (int i = 0; i < 4; i++) {
-            double angle = SwerveManager.getSteerAngle(i);
-            double currentDriveMotorDistance = SwerveManager.getDrivePosition(i);
-            double driveMotor0Change = currentDriveMotorDistance - previousDrivePosition[i];
-            previousDrivePosition[i] = currentDriveMotorDistance;
-            deltapos.x += Math.sin(angle)*driveMotor0Change;
-            deltapos.y += Math.cos(angle)*driveMotor0Change;
-        }
-
-        // 4 Swerve modules, so divide by 4
-        deltapos = deltapos.div(4);
-
-        // Rotate the change in position to be local to the field
-        double heading = Pigeon.getRotation() * Math.PI / 180.0;
-        deltapos = deltapos.rotate(heading);
-
-        // Add our new movement to our current position 
-        positionAcc = positionAcc.add(deltapos);
-    }
-
-
-
-    public static void updateVelocity() {
+        // Derive our velocity 
         Vector2D vel = new Vector2D(0,0);
         for (int i = 0; i < 4; i++) {
             double driveMotorSpeed = SwerveManager.getDriveVelocity(i);
@@ -58,17 +36,20 @@ public class SwervePosition {
 
         double heading = Pigeon.getRotation()*Math.PI/180; 
 
+        localVelocity = vel;
+
         // Rotate our velocity to be local to the field
         vel = vel.rotate(heading);
 
         vel.x *= -1;
 
-        lastVelocity = absVelocity; 
+        lastAbsVelocity = absVelocity; 
         absVelocity = vel;
-    }
 
-    public static void updatePositionIntegration() {
-        positionInt = positionInt.add(absVelocity.add(lastVelocity).mul(0.5*RTime.getDeltaTime()));
+
+        // Integrate our velocity to find our position
+        position = position.add(absVelocity.add(lastAbsVelocity).mul(0.5*RTime.getDeltaTime()));
+
     }
 
 
@@ -82,10 +63,17 @@ public class SwervePosition {
         return new double[]{angle, distance};
     }
 
-    public static Vector2D getPosition(){
-        return positionInt;
+    public static Vector2D getAbsPosition(){
+        return position;
     }
 
+    public static Vector2D getPosition(){
+        return position.add(positionOffset);
+    }
+
+    public static Vector2D getAbsVelocity() {
+        return absVelocity;
+    }
     //returns array of the robot's angle and distance in INCHES based of of sensor velocity
     // public static double[] angleDistancePositionVelocity(){
         

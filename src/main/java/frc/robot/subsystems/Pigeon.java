@@ -73,7 +73,7 @@ public class Pigeon {
     }
 
     public static void setYaw(double deg) {
-        m_pigeon.setYaw(0, 10);
+        m_pigeon.setYaw(deg, 10);
     }
 
     // Local to the robot, not the world

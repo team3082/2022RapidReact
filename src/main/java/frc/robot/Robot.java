@@ -9,13 +9,12 @@ public class Robot extends TimedRobot {
 
 
 
-
 	@Override
 	public void robotInit() {
 		RTime.init();
 		SwerveManager.init();
 		Pigeon.init();
-		Pigeon.initPID(3.0, 3.0, 0, 1.0, 0.25, 1.0);
+		Pigeon.initPID(1.5, 0.75, 0, 1.0, 0.75, 1.0);
 		Shooter.init();
 		Intake.init();
 		AutoAlign.init();
@@ -41,14 +40,13 @@ public class Robot extends TimedRobot {
 	@Override
 	public void teleopPeriodic() {
 		RTime.update();
-		SwervePosition.updateVelocity();
-		SwervePosition.updatePositionIntegration();
-		SwervePosition.updatePositionAccumulation();
+		SwervePosition.update();
 		
 		TuningTables.update();
 
-		OI.joystickInput();
 		AutoAlign.update();
+		OI.joystickInput();
+		Shooter.update();
 
 	}
 
@@ -75,7 +73,6 @@ public class Robot extends TimedRobot {
 	@Override
 	public void autonomousInit() {
 
-		Pigeon.zero();
 		SwervePosition.init();
 
 		SwerveManager.pointWheels(0);
@@ -86,9 +83,7 @@ public class Robot extends TimedRobot {
 	@Override
 	public void autonomousPeriodic() {
 		RTime.update();
-		SwervePosition.updateVelocity();
-		SwervePosition.updatePositionIntegration();
-		SwervePosition.updatePositionAccumulation();
+		SwervePosition.update();
 
 		BasicAuto.update();
 

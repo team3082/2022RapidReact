@@ -12,7 +12,7 @@ public class AutoAlign {
     private static NetworkTableEntry nt_hub_ang;
     private static NetworkTableEntry nt_hub_dist;
 
-    private static boolean m_hubSeen  = false;
+    public static boolean m_hubSeen  = false;
     public  static double  m_distAvg  = 10.0;
     private static double  m_hubAngle = 0.0;
 
@@ -58,7 +58,10 @@ public class AutoAlign {
         // We do this immediately incase we recv new data during this frame
         m_hubSeen = true;
         nt_hub_seen.setBoolean(false);
+
         
+        
+
         // New data
         m_hubAngle  = nt_hub_ang.getDouble(0.0);
         double dist = nt_hub_dist.getDouble(12.5);
@@ -71,9 +74,15 @@ public class AutoAlign {
         // dt * 2 so half a second is our "full replacement" period
         double scale = deltatime * 2;
 
+        // While the shooter is active, discard new data
+        // It shakes the camera way too much most of the time 
+        //if(Shooter.active())
+        //    scale *= 0.75;
+
         // Cap off our scale at 1 
         if(scale > 1.0)
             scale = 1.0;
+
 
         
         // Combine our last avg with our new dist.
@@ -90,4 +99,5 @@ public class AutoAlign {
             Pigeon.setTargetAngle(absang);
         }
     }
+
 }

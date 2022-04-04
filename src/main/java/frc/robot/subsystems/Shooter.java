@@ -6,6 +6,7 @@ import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 
+import frc.robot.TuningTables;
 import frc.robot.robotmath.Vector2D;
 
 public class Shooter {
@@ -27,7 +28,11 @@ public class Shooter {
     
 
     // Only fire when within this many RPM of our target
-    private static final double kDeadbandRPM = 7.0;
+    private static final double kDeadbandRPM = 6.0;
+
+    private static boolean m_active = false;
+    private static boolean m_firing = false;
+
 
     public static void init() {
         m_handoff = new VictorSPX(8);
@@ -35,19 +40,43 @@ public class Shooter {
         m_handoff.configFactoryDefault();
         m_flywheel.configFactoryDefault();
 
-        m_handoff.setInverted(true);
+        m_handoff.setInverted(false);
         m_flywheel.setInverted(true);
 
         m_flywheel.setNeutralMode(NeutralMode.Coast);
-        m_flywheel.config_kP(0, 0.0007);
-        m_flywheel.config_kI(0, 0.004);
+        m_flywheel.config_kP(0, 0.2);
+        m_flywheel.config_kI(0, 0.015);
         m_flywheel.config_kD(0, 0);
-        m_flywheel.configClosedLoopPeriod(0, 1750);
+        m_flywheel.configClosedLoopPeriod(0, 1200);
         
-        // 17,760
+        m_flywheel.configVoltageCompSaturation(12.2);
+        m_flywheel.enableVoltageCompensation(true);
+
+        m_handoff.setNeutralMode(NeutralMode.Brake);
+
 
         m_targetSpeed = 0;
+        m_active = false;
+        m_firing = false;
 
+    }
+
+    public static void update() {
+        if(m_active) {
+
+            if(m_firing) {
+                if(Pigeon.atSetpoint() && Shooter.atSetpoint()) {  
+                    setHandoffEnabled(true);
+                }
+            }
+            else {
+                setHandoffEnabled(false);
+            }
+
+        }
+        else {
+            setHandoffEnabled(false);
+        }
     }
 
     public static void setShooterSpeed(double shooter_control) {
@@ -60,7 +89,7 @@ public class Shooter {
 
     public static void setHandoffEnabled(Boolean shooter_intake_control) {
         if (shooter_intake_control) {
-            m_handoff.set(ControlMode.PercentOutput, -1);
+            m_handoff.set(ControlMode.PercentOutput, 1);
         } else {
             m_handoff.set(ControlMode.PercentOutput, 0);
         }
@@ -78,12 +107,12 @@ public class Shooter {
         // Small old swerve
         //final double wheel_radius_ft = 6 /* inch diameter */ / 2.0 / 12.0;
         
-        final double grav_ftps = -32.2; 
-        final double shooter_angle = (11.8) * Math.PI / 180.0;
+        final double grav_ftps = -32.1740486; 
+        /*final*/ double shooter_angle = (TuningTables.getShooterAngle()) * Math.PI / 180.0;
         final Vector2D shooter_dir = new Vector2D(Math.sin(shooter_angle), Math.cos(shooter_angle));
-        final Vector2D hub_pos_ft = new Vector2D(0, 8 + 8/12);
+        final Vector2D hub_pos_ft = new Vector2D(0, 8 + 8/12 + 0.6);
         
-        Vector2D shooter_pos_ft = new Vector2D(-dist_ft, 2);
+        Vector2D shooter_pos_ft = new Vector2D(-dist_ft - 1, 2);
         Vector2D delta = hub_pos_ft.sub(shooter_pos_ft);
 
         // The speed the ball should be at when it comes out of the shooter
@@ -128,17 +157,20 @@ public class Shooter {
         // Convert to encoder ticks per 100 ms
         double vel = rpm * kRPMToVel;
 
-        // Pump it into the wheel!
-        m_targetSpeed = vel;
-        m_flywheel.set(TalonFXControlMode.Velocity, m_targetSpeed);
-
-        // If our calculations failed, were very small, or negative, don't run the shooter
-        if(Double.isInfinite(m_targetSpeed) 
-        || Double.isNaN(m_targetSpeed) 
-        || m_targetSpeed <= 2048) {
-            m_flywheel.set(TalonFXControlMode.PercentOutput, 0.0);
-        }
         
+        // If our calculations failed, were very small, or negative, don't run the shooter
+        if(Double.isInfinite(vel) 
+        || Double.isNaN(vel) 
+        || vel <= 2048) {
+            stopVelocityControl();
+        }
+        else
+        {
+            // Pump it into the wheel!
+            m_targetSpeed = vel;
+            m_flywheel.set(TalonFXControlMode.Velocity, m_targetSpeed);
+            m_active = true;
+        }        
     }
 
     public static boolean atSetpoint()
@@ -155,14 +187,27 @@ public class Shooter {
         // By setting our output to 0, we disable the controller and allow the wheel to coast
         // This should help us maintain the health of our belts
         m_flywheel.set(TalonFXControlMode.PercentOutput, 0.0);
+        m_active = false;
+    } 
+
+
+    public static void eject() {
+        m_flywheel.set(TalonFXControlMode.PercentOutput, 0.8);
+        m_handoff.set(ControlMode.PercentOutput, -1);
+        m_active = true;
     }
 
-    // --------------------
-    // |OPERATOR OVERRIDES|
-    // --------------------
-    public static void reverse(){
-        m_handoff.set(ControlMode.PercentOutput, 0.5);
-        m_flywheel.set(ControlMode.PercentOutput, -0.3);
+
+    public static void fire(boolean fire) {
+        m_firing = fire;
     }
 
+    // Is the shooter currently revving?
+    public static boolean active() {
+        return m_active;
+    }
+
+    public static boolean firing() {
+        return m_firing;
+    }
 }
