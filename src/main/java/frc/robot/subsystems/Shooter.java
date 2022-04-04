@@ -87,12 +87,8 @@ public class Shooter {
         m_flywheel.set(ControlMode.Velocity, rpm*kRPMToVel);
     }
 
-    public static void setHandoffEnabled(Boolean shooter_intake_control) {
-        if (shooter_intake_control) {
-            m_handoff.set(ControlMode.PercentOutput, 1);
-        } else {
-            m_handoff.set(ControlMode.PercentOutput, 0);
-        }
+    public static void setHandoffEnabled(boolean enabled) {
+        m_handoff.set(ControlMode.PercentOutput, enabled?1:0);
     }
 
     // Distance in feet

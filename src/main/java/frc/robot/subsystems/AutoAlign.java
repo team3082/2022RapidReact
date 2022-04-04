@@ -4,6 +4,7 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import frc.robot.robotmath.RTime;
+import frc.robot.robotmath.Vector2D;
 
 public class AutoAlign {
 
@@ -88,7 +89,9 @@ public class AutoAlign {
         // Combine our last avg with our new dist.
         // Longer the interval between updates, the more bias our new data has
         m_distAvg = m_distAvg * (1.0 - scale) + dist * (scale);
-        
+
+        //Update odomotry position
+        SwervePosition.updateOffsetForPosition(Vector2D.fromPolar(Pigeon.getRotation() - m_hubAngle, m_distAvg+2));
     }
 
     public static void setAngle() {

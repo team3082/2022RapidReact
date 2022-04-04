@@ -14,6 +14,17 @@ public class Vector2D {
         this.x = x;
         this.y = y;
     }
+
+    /**
+    * Returns a new vector from a given polar coordinate
+    * @param deg The theta component of the coordinate in degrees
+    * @param r The radius component of the coordinate
+    */
+    public static Vector2D fromPolar(double deg, double r){
+        double a = Math.toRadians(deg);
+        return new Vector2D(Math.cos(a) * r, Math.sin(a) * r);
+    }
+
     /**
     * Add another vector to this one
     * @param rhs The vector on the right hand side of the equation
@@ -76,7 +87,6 @@ public class Vector2D {
     public double atan(){
         return Math.atan2(y, x);
     }
-
     
     /**
     * Circle begins at (0,1), positive rotating clockwise
