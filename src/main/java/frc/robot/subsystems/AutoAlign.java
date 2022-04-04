@@ -19,7 +19,10 @@ public class AutoAlign {
 
     private static double m_lastupdatetime = 0;
 
-    public static void init(){
+    private static final double k_innerBand = 10.0;
+    private static final double k_outerBand = 27.0;
+
+    public static void init() {
         m_networkTable = NetworkTableInstance.getDefault().getTable("vis");
         nt_hub_seen = m_networkTable.getEntry("hub_seen");
         nt_hub_ang  = m_networkTable.getEntry("hub_ang");
@@ -66,6 +69,12 @@ public class AutoAlign {
         // New data
         m_hubAngle  = nt_hub_ang.getDouble(0.0);
         double dist = nt_hub_dist.getDouble(12.5);
+
+        //Check for bad data
+        if(dist < k_innerBand || dist > k_outerBand){
+            m_hubSeen = false;
+            return;
+        }
 
         // Time since last recv from the Pi
         double curtime = RTime.getTime();

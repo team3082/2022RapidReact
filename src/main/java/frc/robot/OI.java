@@ -5,6 +5,7 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Joystick;
 import frc.robot.robotmath.Vector2D;
 import frc.robot.subsystems.AutoAlign;
+import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Pigeon;
 import frc.robot.subsystems.Shooter;
@@ -28,10 +29,14 @@ public class OI {
     
 
     static Joystick m_operatorStick;
-    
+
+    static final int kBigHook = 5;
+    static final int kTiltHook = 1;
+    static final int kStartClimb = 8;
+    static final int kStopClimb = 7;
+
     static final int kEject1 = 5;
     static final int kEject2 = 6;
-    
 
     static NetworkTable m_nt;
 
@@ -42,6 +47,31 @@ public class OI {
     }
 
     public static void joystickInput(){
+
+        //If climbing stop everything.
+        // Operator: (BACK) Stops climb
+        if(Climber.isClimbing()){
+            if(m_operatorStick.getRawButton(kStopClimb))
+                Climber.stopClimb();
+            else
+                Climber.climb();
+                return;
+        }
+        
+        // Operator: (START) Starts climb
+        if(m_operatorStick.getRawButton(kStartClimb)){
+            Climber.startClimb();
+            Climber.climb();
+            return;
+        }
+
+        // Operator: (R Stick) Controlls big hook
+        if(m_operatorStick.getRawAxis(kBigHook) > 0.2)
+            Climber.setHook(m_operatorStick.getRawAxis(kBigHook));
+
+        // Operator: (L Stick) Controlls tilting hook
+        if(m_operatorStick.getRawAxis(kTiltHook) > 0.2)
+            Climber.setHook(m_operatorStick.getRawAxis(kTiltHook));
 
         // Driver: (L Stick) Drives
         Vector2D drive = new Vector2D(m_driverStick.getRawAxis(kMoveX), -m_driverStick.getRawAxis(kMoveY));
