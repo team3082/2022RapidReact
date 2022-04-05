@@ -3,6 +3,7 @@ package frc.robot;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Joystick;
+import frc.LogitechF310;
 import frc.robot.robotmath.Vector2D;
 import frc.robot.subsystems.AutoAlign;
 import frc.robot.subsystems.Climber;
@@ -16,32 +17,28 @@ public class OI {
     
     static Joystick m_driverStick;
     
-    static final int kMoveX = 0;
-    static final int kMoveY = 1;
-    static final int kRotateX = 4;
-    static final int kBoost = 2;
+    static final int kMoveX         = LogitechF310.AXIS_LEFT_X;
+    static final int kMoveY         = LogitechF310.AXIS_LEFT_Y;
+    static final int kRotateX       = LogitechF310.AXIS_RIGHT_X;
+    static final int kBoost         = LogitechF310.AXIS_LEFT_TRIGGER;
 
-    static final int kPigeonZero = 8;
-    static final int kShooterRev = 6;
-    static final int kShooterFire = 5;
-    static final int kManualHandoff = 3;
-    static final int kIntakePull = 3;
-    
+    static final int kPigeonZero    = LogitechF310.BUTTON_START;
+    static final int kShooterRev    = LogitechF310.BUTTON_RIGHT_BUMPER;
+    static final int kShooterFire   = LogitechF310.BUTTON_LEFT_BUMPER;
+    static final int kShooterManual = LogitechF310.BUTTON_X;
+    static final int kIntakePull    = LogitechF310.AXIS_RIGHT_TRIGGER;
+    static final int kEject         = LogitechF310.BUTTON_BACK;
 
     static Joystick m_operatorStick;
 
-    static final int kBigHook = 5;
-    static final int kTiltHook = 1;
-    static final int kStartClimb = 8;
-    static final int kStopClimb = 7;
+    static final int kBigHook    = LogitechF310.AXIS_RIGHT_Y;
+    static final int kTiltHook   = LogitechF310.AXIS_LEFT_Y; 
+    static final int kStartClimb = LogitechF310.BUTTON_START;
+    static final int kStopClimb  = LogitechF310.BUTTON_BACK;
 
-    static final int kEject1 = 5;
-    static final int kEject2 = 6;
 
-    static NetworkTable m_nt;
-
+    
     public static void init(){
-        m_nt = NetworkTableInstance.getDefault().getTable("shooter");
         m_driverStick = new Joystick(0);
         m_operatorStick = new Joystick(1);
     }
@@ -49,7 +46,7 @@ public class OI {
     public static void joystickInput(){
 
         //If climbing stop everything.
-        // Operator: (BACK) Stops climb
+        // Operator: Stops climb
         if(Climber.isClimbing()){
             if(m_operatorStick.getRawButton(kStopClimb))
                 Climber.stopClimb();
@@ -58,25 +55,25 @@ public class OI {
                 return;
         }
         
-        // Operator: (START) Starts climb
+        // Operator: Starts climb
         if(m_operatorStick.getRawButton(kStartClimb)){
             Climber.startClimb();
             Climber.climb();
             return;
         }
 
-        // Operator: (R Stick) Controlls big hook
+        // Operator: Controlls big hook
         if(m_operatorStick.getRawAxis(kBigHook) > 0.2)
             Climber.setHook(m_operatorStick.getRawAxis(kBigHook));
 
-        // Operator: (L Stick) Controlls tilting hook
+        // Operator: Controlls tilting hook
         if(m_operatorStick.getRawAxis(kTiltHook) > 0.2)
             Climber.setHook(m_operatorStick.getRawAxis(kTiltHook));
 
-        // Driver: (L Stick) Drives
+        // Driver: Drives
         Vector2D drive = new Vector2D(m_driverStick.getRawAxis(kMoveX), -m_driverStick.getRawAxis(kMoveY));
 
-        // Driver: (R trigger) Boosts
+        // Driver: Boosts
         double boost = m_driverStick.getRawAxis(kBoost);
         boost = boost * 0.7 + 0.3;
 
@@ -90,7 +87,7 @@ public class OI {
         else
             drive = drive.mul(boost);
 
-        //Driver: (R stick X) Rotates
+        //Driver: Rotates
         double rotate = -m_driverStick.getRawAxis(kRotateX);
         //Joystick deadzone for rotation
         if(Math.abs(rotate) < 0.05)
@@ -115,59 +112,69 @@ public class OI {
         */
         //System.out.println(AutoAlign.getAngle());
         
-        // Driver: (START) zeros pigeon
+        // Driver: zeros pigeon
         if(m_driverStick.getRawButton(kPigeonZero)){
             Pigeon.zero();
             Pigeon.setTargetAngle(0);
         }
         
-        // Operator: (L & R  bumper together) Eject
-        if(m_operatorStick.getRawButton(kEject1) && m_operatorStick.getRawButton(kEject2)) {
+        // Driver: Eject
+        if(m_driverStick.getRawButton(kEject)) {
             Intake.eject();
             Shooter.eject();
+            Pigeon.stop();
         } else {
  
-            // Driver: (R Trigger) Intakes
+            // Driver: Intakes
             Intake.setEnabled(m_driverStick.getRawAxis(kIntakePull) > 0.075);
             
-            // Driver: (R Bumper) Revs to set rpm and does NOT auto align
+            // Driver: Revs to set rpm and does NOT auto align
             boolean shooterRev = m_driverStick.getRawButton(kShooterRev);
-            // Driver: (L Bumper)...
+            // Driver: ...
             //  Aligns to hub, 
             //  Overrides rev and revs to distance from hub, 
             //  & Activates handoff when at speed
             boolean shooterAutoFire = m_driverStick.getRawButton(kShooterFire);
-            // Driver: (X) Manually activates handoff
-            boolean manualHandoff = m_driverStick.getRawButton(kManualHandoff);
+            // Driver: Manually fires the shooter with a set rpm
+            boolean manualFire = m_driverStick.getRawButton(kShooterManual);
+            final double manualFireRPM = 2500.0;
 
-            if(shooterAutoFire) {
-                /* 
-                AutoAlign.setAngle();
-                Shooter.setRPMForDist(AutoAlign.m_distAvg, 1.0); 
-                */
-                //Always use odometry.
-                //Odomotry gets instantly updated when the camera sees the hub,
-                //  so this should be the same as using vision except it should work when we can't see the hub
-                Vector2D direction = new Vector2D(0,0).sub(SwervePosition.getPosition());
-                Pigeon.setTargetAngle(direction.atanDeg());
-                Shooter.setRPMForDist(direction.mag(), 1.0);
+            // Always use odometry for auto firing.
+            // Odomotry gets instantly updated when the camera sees the hub,
+            //  so this should be the same as using vision except it should work when we can't see the hub
+
+            // We only ever want to be aligning if we're in auto fire mode 
+            if(shooterAutoFire && !manualFire) {
+                // Multiply by -1 so that we're pointing towards 0
+                double ang = SwervePosition.getPosition().mul(-1).atanDeg();
+                Pigeon.setTargetAngle(ang);
                 rotate = Pigeon.correctTurnWithPID();
-            } else if (shooterRev){
-                Shooter.setShooterRPM(3000);
-        } else {
-                Shooter.stopVelocityControl();
+            } else {
                 Pigeon.stop();
             }
+                
+            // Manually firing takes precedence over auto firing
+            // Auto firing takes precedence over revving
 
-            Shooter.fire(shooterAutoFire);
-            if(manualHandoff)
-                Shooter.setHandoffEnabled(true);
+            if (manualFire) {
+                // Manually fire the shooter to our set rpm
+                Shooter.revTo(manualFireRPM);
+                Shooter.fire();
+            } else if(shooterAutoFire) {
+                // Rev and fire the shooter for our position on the field
+                Shooter.setRPMForDist(SwervePosition.getPosition().mag());
+                Shooter.fire();   
+            } else if (shooterRev) {
+                // Rev the shooter to a set rpm, somewhere about the middle of the field
+                Shooter.revTo(manualFireRPM);
+            } else {
+                Shooter.stop();
+            }
+            
         }
+
+        // Swerving and a steering! Zoom!
         SwerveManager.rotateAndDrive(rotate, drive);
 
-        //NT stuff for debugging/tuning only. Not actually used
-        m_nt.getEntry("target_rpm").setDouble(Shooter.m_targetSpeed * Shooter.kVelToRPM);
-        m_nt.getEntry("current_rpm").setDouble(Shooter.m_flywheel.getSelectedSensorVelocity() * Shooter.kVelToRPM);
-        m_nt.getEntry("at_setpoint").setBoolean(Shooter.atSetpoint());
     }
 }

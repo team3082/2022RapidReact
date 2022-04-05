@@ -200,14 +200,14 @@ public class BasicAuto {
                     nextInstruction();
                 break;
             case SHOOT:
-                if(RTime.getTime() > instructions[index].stopTime){
-                    Shooter.stopVelocityControl();
+                if(RTime.now() >= instructions[index].stopTime){
+                    Shooter.stop();
                     nextInstruction();
                     return;
                 }
+                Shooter.fire();
                 if(Shooter.atSetpoint()){
-                    Shooter.setHandoffEnabled(true);
-                    instructions[index].stopTime = RTime.getTime() + 0.35;   
+                    instructions[index].stopTime = RTime.now() + 0.5;   
                 }
                 break;
             default:
@@ -245,7 +245,7 @@ public class BasicAuto {
                 nextInstruction();
                 break;
             case REVFORDIST:
-                Shooter.setRPMForDist(instructions[index].dist, 1.0);
+                Shooter.setRPMForDist(instructions[index].dist);
                 nextInstruction();
                 break;
             default:

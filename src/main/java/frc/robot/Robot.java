@@ -32,7 +32,7 @@ public class Robot extends TimedRobot {
 		SwerveManager.zeroSteeringEncoders();
 		
 		// FIXME: Remove before competition
-		Shooter.stopVelocityControl();
+		Shooter.stop();
 		SwervePosition.init();
 	}
 

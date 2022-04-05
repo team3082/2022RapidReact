@@ -28,12 +28,12 @@ public class RTime {
     }
 
     // Current time since init in seconds
-    public static double getTime() {
+    public static double now() {
         return m_time;
     }
 
     // Time since the last time update was called in seconds
-    public static double getDeltaTime() {
+    public static double deltaTime() {
         // TODO: Check if true time or period has better results
         //return m_deltatime;
         return Robot.kDefaultPeriod;

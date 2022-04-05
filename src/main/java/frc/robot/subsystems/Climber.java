@@ -48,7 +48,7 @@ public class Climber {
         setHook(0);
         setTilt(0);
         Pigeon.stop();
-        Shooter.stopVelocityControl();
+        Shooter.stop();
         SwerveManager.rotateAndDrive(0, new Vector2D(0,0));
         Intake.setEnabled(false);
     }

@@ -48,7 +48,7 @@ public class SwervePosition {
 
 
         // Integrate our velocity to find our position
-        position = position.add(absVelocity.add(lastAbsVelocity).mul(0.5*RTime.getDeltaTime()));
+        position = position.add(absVelocity.add(lastAbsVelocity).mul(0.5*RTime.deltaTime()));
 
     }
 

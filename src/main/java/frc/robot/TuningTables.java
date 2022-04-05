@@ -16,7 +16,7 @@ public class TuningTables {
 	private static final double kShooterAngle = 30.0;
 
 
-    private static final boolean kEnabled = false; 
+    private static final boolean kEnabled = true; 
 
 	private static NetworkTable m_nt;
 	private static NetworkTableEntry m_ix;
@@ -77,7 +77,7 @@ public class TuningTables {
 		m_vx.setDouble(vel.x);
 		m_vy.setDouble(vel.y);
 
-		m_dt.setDouble(RTime.getDeltaTime());
+		m_dt.setDouble(RTime.deltaTime());
 
         m_hub_dist_avg.setDouble(AutoAlign.m_distAvg);
 

@@ -77,7 +77,7 @@ public class AutoAlign {
         }
 
         // Time since last recv from the Pi
-        double curtime = RTime.getTime();
+        double curtime = RTime.now();
         double deltatime = curtime - m_lastupdatetime;
         m_lastupdatetime = curtime;
         

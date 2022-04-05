@@ -32,7 +32,7 @@ public class Pigeon {
     
     // Setting this to true will make the Pigeon's 
     // PID values visable and editable from the network
-    final static boolean m_tuningmode = true;
+    final static boolean m_tuningmode = false;
     private static NetworkTable m_nt;
 
 
@@ -157,7 +157,7 @@ public class Pigeon {
             return 0;
 
         // This assumes that we're calling correctTurnWithPID every frame
-        double dt = RTime.getDeltaTime();
+        double dt = RTime.deltaTime();
         
 
         // If we're in tuning mode, check the network for new values
