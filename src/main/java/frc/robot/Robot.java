@@ -8,7 +8,6 @@ import frc.robot.subsystems.*;
 public class Robot extends TimedRobot {
 
 
-
 	@Override
 	public void robotInit() {
 		RTime.init();
@@ -40,14 +39,14 @@ public class Robot extends TimedRobot {
 	@Override
 	public void teleopPeriodic() {
 		RTime.update();
+
 		SwervePosition.update();
+		AutoAlign.update();
 		
 		TuningTables.update();
 
-		AutoAlign.update();
 		OI.joystickInput();
 		Shooter.update();
-
 	}
 
 	@Override

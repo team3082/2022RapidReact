@@ -141,16 +141,16 @@ public class OI {
             boolean manualHandoff = m_driverStick.getRawButton(kManualHandoff);
 
             if(shooterAutoFire) {
-                if(AutoAlign.m_hubSeen){
-                    //Use hub
-                    AutoAlign.setAngle();
-                    Shooter.setRPMForDist(AutoAlign.m_distAvg, 1.0);
-                } else {
-                    //Use odomotry (KINDA SUS)
-                    Vector2D direction = new Vector2D(0,0).sub(SwervePosition.getPosition());
-                    Pigeon.setTargetAngle(direction.atanDeg());
-                    Shooter.setRPMForDist(direction.mag(), 1.0);
-                }
+                /* 
+                AutoAlign.setAngle();
+                Shooter.setRPMForDist(AutoAlign.m_distAvg, 1.0); 
+                */
+                //Always use odometry.
+                //Odomotry gets instantly updated when the camera sees the hub,
+                //  so this should be the same as using vision except it should work when we can't see the hub
+                Vector2D direction = new Vector2D(0,0).sub(SwervePosition.getPosition());
+                Pigeon.setTargetAngle(direction.atanDeg());
+                Shooter.setRPMForDist(direction.mag(), 1.0);
                 rotate = Pigeon.correctTurnWithPID();
             } else if (shooterRev){
                 Shooter.setShooterRPM(3000);

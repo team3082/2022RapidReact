@@ -127,7 +127,7 @@ public class BasicAuto {
     public static void threeBallTohuman() {
         //NOT FINISHED!!!!
         Pigeon.setYaw(90);
-        SwervePosition.updateOffsetForPosition(new Vector2D(-86, -32));
+        SwervePosition.setPosition(new Vector2D(-86, -32));
         instructions = new AutoFrame[]
         {
             AutoFrame.Intake(true),

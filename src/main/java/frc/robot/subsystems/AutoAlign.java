@@ -99,8 +99,10 @@ public class AutoAlign {
         // Longer the interval between updates, the more bias our new data has
         m_distAvg = m_distAvg * (1.0 - scale) + dist * (scale);
 
-        //Update odomotry position
-        SwervePosition.updateOffsetForPosition(Vector2D.fromPolar(Pigeon.getRotation() - m_hubAngle, m_distAvg+2));
+        //Update odometry position
+        double a = Pigeon.getRotation() - m_hubAngle, d = m_distAvg+2;
+        a = (Math.PI/2) + Math.PI*(a/180);
+        SwervePosition.setPosition(new Vector2D(Math.cos(a)*d, Math.sin(a)*d).mul(-1));
     }
 
     public static void setAngle() {

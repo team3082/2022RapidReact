@@ -75,7 +75,7 @@ public class SwervePosition {
         return absVelocity;
     }
 
-    public static void updateOffsetForPosition(Vector2D newnPosition){
+    public static void setPosition(Vector2D newnPosition){
         positionOffset = newnPosition.sub(position);
     }
     //returns array of the robot's angle and distance in INCHES based of of sensor velocity

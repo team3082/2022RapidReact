@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
+import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
@@ -44,10 +45,13 @@ public class Shooter {
         m_flywheel.setInverted(true);
 
         m_flywheel.setNeutralMode(NeutralMode.Coast);
-        m_flywheel.config_kP(0, 0.2);
+        m_flywheel.config_kP(0, 0.125);
         m_flywheel.config_kI(0, 0.015);
         m_flywheel.config_kD(0, 0);
         m_flywheel.configClosedLoopPeriod(0, 1200);
+        
+        SupplyCurrentLimitConfiguration currentLimit = new SupplyCurrentLimitConfiguration(true, 35, 35, 0 );
+        m_flywheel.configSupplyCurrentLimit(currentLimit);
         
         m_flywheel.configVoltageCompSaturation(12.2);
         m_flywheel.enableVoltageCompensation(true);
@@ -106,7 +110,7 @@ public class Shooter {
         final double grav_ftps = -32.1740486; 
         /*final*/ double shooter_angle = (TuningTables.getShooterAngle()) * Math.PI / 180.0;
         final Vector2D shooter_dir = new Vector2D(Math.sin(shooter_angle), Math.cos(shooter_angle));
-        final Vector2D hub_pos_ft = new Vector2D(0, 8 + 8/12 + 0.6);
+        final Vector2D hub_pos_ft = new Vector2D(0, 8 + 8/12 + 0.2);
         
         Vector2D shooter_pos_ft = new Vector2D(-dist_ft - 1, 2);
         Vector2D delta = hub_pos_ft.sub(shooter_pos_ft);
