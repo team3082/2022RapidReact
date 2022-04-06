@@ -1,4 +1,4 @@
-package frc;
+package frc.controllermaps;
 
 public class LogitechF310 {
     public static final int AXIS_LEFT_X = 0;

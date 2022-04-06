@@ -1,7 +1,8 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.Joystick;
-import frc.LogitechF310;
+import frc.controllermaps.GuitarHero;
+import frc.controllermaps.LogitechF310;
 import frc.robot.robotmath.Vector2D;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Intake;
@@ -28,11 +29,25 @@ public class OI {
 
     static Joystick m_operatorStick;
 
-    static final int kBigHook    = LogitechF310.AXIS_RIGHT_Y;
-    static final int kTiltHook   = LogitechF310.AXIS_LEFT_Y; 
-    static final int kStartClimb = LogitechF310.BUTTON_START;
-    static final int kStopClimb  = LogitechF310.BUTTON_BACK;
-    static final int kZeroClimber= LogitechF310.BUTTON_Y;
+    // True: Logitech, False: Guitar Hero
+    static final boolean useLogitechOperator = false;
+
+    // LOGITECH OPERATOR
+    static final int kLBigHook    = LogitechF310.AXIS_RIGHT_Y;
+    static final int kLTiltHook   = LogitechF310.AXIS_LEFT_Y; 
+    static final int kLStartClimb = LogitechF310.BUTTON_START;
+    static final int kLStopClimb  = LogitechF310.BUTTON_BACK;
+    static final int kLZeroClimber= LogitechF310.BUTTON_Y;
+
+    //GUITAR HERO OPERATOR
+    static final int kGBigHookUp   = GuitarHero.BUTTON_TOP_G;
+    static final int kGBigHookDown = GuitarHero.BUTTON_TOP_R;
+    static final int kGTiltHookOut = GuitarHero.BUTTON_TOP_Y;
+    static final int kGTiltHookIn  = GuitarHero.BUTTON_TOP_B; 
+    static final int kGHookPower   = GuitarHero.AXIS_WHAMMY_BAR;
+    static final int kGStartClimb  = GuitarHero.BUTTON_START;
+    static final int kGStopClimb   = GuitarHero.BUTTON_BACK;
+    static final int kGZeroClimber = GuitarHero.BUTTON_TOP_O;
 
     
     public static void init(){
@@ -45,33 +60,54 @@ public class OI {
         //If climbing stop everything.
         // Operator: Stops climb
         if(Climber.isClimbing()){
-            if(m_operatorStick.getRawButton(kStartClimb))
+            if(m_operatorStick.getRawButton(useLogitechOperator ? kLStartClimb : kGStartClimb))
                 Climber.stopClimb();
             else
                 Climber.climb();
                 return;
         }
         // Operator: Starts climb
-        if(m_operatorStick.getRawButton(kStopClimb)){
+        if(m_operatorStick.getRawButton(useLogitechOperator ? kLStopClimb : kGStopClimb)){
             Climber.startClimb();
             Climber.climb();
             return;
         }
         
-        if(m_operatorStick.getRawButton(kZeroClimber)){
+        if(m_operatorStick.getRawButton(useLogitechOperator ? kLZeroClimber : kGZeroClimber)){
           Climber.zero();
         }
-  
-        // Operator: Controlls big hook
-        if(Math.abs(m_operatorStick.getRawAxis(kBigHook)) > 0.05)
-            Climber.setHook(m_operatorStick.getRawAxis(kBigHook));
-        else
-            Climber.setHook(0);
-        // Operator: Controlls tilting hook
-        if(Math.abs(m_operatorStick.getRawAxis(kTiltHook)) > 0.05)
-            Climber.setScrew(m_operatorStick.getRawAxis(kTiltHook));
-        else
-            Climber.setScrew(0);
+        if (useLogitechOperator) {
+            // LOGITECH OPERATOR
+            // Operator: Controls big hook
+            if(Math.abs(m_operatorStick.getRawAxis(kLBigHook)) > 0.05)
+                Climber.setHook(m_operatorStick.getRawAxis(kLBigHook));
+            else
+                Climber.setHook(0);
+
+            //Operator: Controls tilting hook
+            if(Math.abs(m_operatorStick.getRawAxis(kLTiltHook)) > 0.05)
+                Climber.setScrew(m_operatorStick.getRawAxis(kLTiltHook));
+            else
+                Climber.setScrew(0);
+        } else {
+            // GUITAR HERO OPERATOR
+            double bigHookAxis = (m_operatorStick.getRawButton(kGBigHookUp) ? 1 : 0) - (m_operatorStick.getRawButton(kGBigHookDown) ? 1 : 0);
+            double tiltHookAxis = (m_operatorStick.getRawButton(kGTiltHookOut) ? 1 : 0) - (m_operatorStick.getRawButton(kGTiltHookIn) ? 1 : 0);
+            bigHookAxis *= (m_operatorStick.getRawAxis(kGHookPower) + 1.0) / 2.0;
+            tiltHookAxis *= (m_operatorStick.getRawAxis(kGHookPower) + 1.0) / 2.0;
+
+            // Operator: Controls big hook
+            if(Math.abs(bigHookAxis) > 0.05)
+                Climber.setHook(bigHookAxis);
+            else
+                Climber.setHook(0);
+
+            // Operator: Controls tilting hook
+            if(Math.abs(tiltHookAxis) > 0.05)
+                Climber.setScrew(tiltHookAxis);
+            else
+                Climber.setScrew(0);
+        }
 
         // Driver: Drives
         Vector2D drive = new Vector2D(m_driverStick.getRawAxis(kMoveX), -m_driverStick.getRawAxis(kMoveY));
