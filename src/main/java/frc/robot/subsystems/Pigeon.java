@@ -131,10 +131,15 @@ public class Pigeon {
         }
     }
 
-    public static boolean atSetpoint() {
+
+    public static double getError() {
         double currentAngle = getRotation();
         double error = calculateDestinationPID(currentAngle) - currentAngle;
-        return Math.abs(error) <= m_deadband;
+        return error;
+    }
+
+    public static boolean atSetpoint() {
+        return Math.abs(getError()) <= m_deadband;
     }
 
     private static double calculateDestinationPID(double pigAng) {
@@ -165,8 +170,7 @@ public class Pigeon {
             updatePIDNT();
 
 
-        double currentAngle = getRotation();
-        double error = calculateDestinationPID(currentAngle) - currentAngle;
+        double error = getError();
         
         // Trapezoidal sum to approximate the integral of the error  
         m_ISum += dt*(error + m_lastError)/2;

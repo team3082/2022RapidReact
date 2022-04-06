@@ -46,7 +46,7 @@ public class Shooter {
     private static final double kHandoffPullSpeed = 1.0;
     private static final double kHandoffEjectSpeed = -1.0;
     // Slowly run the handoff backwards when stopped
-    private static final double kHandoffStopSpeed = -0.1;
+    private static final double kHandoffStopSpeed = 0.0;
 
 
     private static VictorSPX m_handoff;
@@ -60,7 +60,7 @@ public class Shooter {
     private static NetworkTableEntry nt_target_rpm;
     private static NetworkTableEntry nt_current_rpm;
     private static NetworkTableEntry nt_at_setpoint;
-    
+    private static NetworkTableEntry nt_temperature;
     
     public static void init() {
 
@@ -85,8 +85,8 @@ public class Shooter {
         m_flywheel.setNeutralMode(NeutralMode.Coast);
         
         // Configure the PID for our velocity control
-        m_flywheel.config_kP(0, 0.125);
-        m_flywheel.config_kI(0, 0.015);
+        m_flywheel.config_kP(0, 0.12);
+        m_flywheel.config_kI(0, 0.008);
         m_flywheel.config_kD(0, 0);
         
         // Use a long loop period so we rev up to speed gently
@@ -106,6 +106,7 @@ public class Shooter {
         nt_target_rpm  = m_nt.getEntry("target_rpm");
         nt_current_rpm = m_nt.getEntry("current_rpm");
         nt_at_setpoint = m_nt.getEntry("at_setpoint");
+        nt_temperature = m_nt.getEntry("temperature");
         
         nt_target_rpm.setDouble(0.0);
         nt_current_rpm.setDouble(0.0);
@@ -126,7 +127,10 @@ public class Shooter {
             
             case Firing:
                 double now = RTime.now();
-                
+
+                // Rev the flywheel up to our set velocity
+                m_flywheel.set(TalonFXControlMode.Velocity, m_targetSpeed);
+
                 // Pass in the ball only when it's at the setpoint
                 if(reachedSetpoint) {
                     m_shotLiveTime = now + kHandoffLifespan;
@@ -169,6 +173,7 @@ public class Shooter {
         nt_target_rpm.setDouble(m_targetSpeed * Shooter.kVelToRPM);
         nt_current_rpm.setDouble(m_flywheel.getSelectedSensorVelocity() * kVelToRPM);
         nt_at_setpoint.setBoolean(reachedSetpoint);
+        nt_temperature.setDouble(getTemperature());
         
     }
 
@@ -262,5 +267,10 @@ public class Shooter {
     // Is the shooter trying to fire?
     public static boolean firing() {
         return m_mode == ShooterMode.Firing;
+    }
+
+    // Temp in C
+    public static double getTemperature() {
+        return m_flywheel.getTemperature();
     }
 }

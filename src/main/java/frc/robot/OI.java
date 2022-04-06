@@ -145,9 +145,18 @@ public class OI {
 
             // We only ever want to be aligning if we're in auto fire mode 
             if(shooterAutoFire && !manualFire) {
+
+                double heading = Pigeon.getRotation() / 180.0 * Math.PI;
+                Vector2D robotPos = SwervePosition.getPosition();
+                Vector2D shooterOffset = new Vector2D(Math.cos(heading), Math.sin(heading)).mul(12 + 5/8);
+                Vector2D shooterPos = robotPos.add(shooterOffset);
+                
                 // Multiply by -1 so that we're pointing towards 0
-                double ang = SwervePosition.getPosition().mul(-1).atanDeg();
+                Vector2D dir = shooterPos.mul(-1).norm();
+                
+                double ang = dir.atanDeg();
                 Pigeon.setTargetAngle(ang);
+                //System.out.println(ang);
                 rotate = Pigeon.correctTurnWithPID();
             } else {
                 Pigeon.stop();
@@ -162,7 +171,7 @@ public class OI {
                 Shooter.fire();
             } else if(shooterAutoFire) {
                 // Rev and fire the shooter for our position on the field
-                Shooter.setRPMForDist(SwervePosition.getPosition().mag());
+                Shooter.setRPMForDist(SwervePosition.getPosition().mag() / 12.0);
                 Shooter.fire();   
             } else if (shooterRev) {
                 // Rev the shooter to a set rpm, somewhere about the middle of the field

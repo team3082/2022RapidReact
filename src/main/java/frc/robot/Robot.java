@@ -87,6 +87,5 @@ public class Robot extends TimedRobot {
 		BasicAuto.update();
 
 		TuningTables.update();
-
 	}
 }

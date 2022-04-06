@@ -100,9 +100,9 @@ public class AutoAlign {
         m_distAvg = m_distAvg * (1.0 - scale) + dist * (scale);
 
         //Update odometry position
-        double a = Pigeon.getRotation() - m_hubAngle, d = m_distAvg+2;
-        a = (Math.PI/2) + Math.PI*(a/180);
-        SwervePosition.setPosition(new Vector2D(Math.cos(a)*d, Math.sin(a)*d).mul(-1));
+        double a = Pigeon.getRotation() - m_hubAngle;
+        a = (Math.PI*0.5) + Math.PI*(a/180.0);
+        SwervePosition.setPosition(new Vector2D(Math.cos(a)*m_distAvg, Math.sin(a)*m_distAvg).mul(-12));
     }
 
     public static void setAngle() {

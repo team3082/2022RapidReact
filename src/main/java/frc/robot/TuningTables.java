@@ -6,6 +6,7 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import frc.robot.robotmath.RTime;
 import frc.robot.robotmath.Vector2D;
 import frc.robot.subsystems.AutoAlign;
+import frc.robot.subsystems.Pigeon;
 import frc.robot.subsystems.SwervePosition;
 
 // Temporary class for pushing data to the network for debugging purposes
@@ -27,6 +28,7 @@ public class TuningTables {
 	private static NetworkTableEntry m_vy;
 	private static NetworkTableEntry m_dt;
     private static NetworkTableEntry m_hub_dist_avg;
+    private static NetworkTableEntry m_pigeon_error;
     
 	private static NetworkTable m_nt_set;
 	private static NetworkTableEntry m_shooter_angle;
@@ -48,6 +50,7 @@ public class TuningTables {
 		m_vy = m_nt.getEntry("vy");
 		m_dt = m_nt.getEntry("dt");
         m_hub_dist_avg = m_nt.getEntry("hub_dist_avg");
+		m_pigeon_error = m_nt.getEntry("pigeon_error");
 
 		m_shooter_angle = m_nt_set.getEntry("shooter_ang");
 		
@@ -58,6 +61,7 @@ public class TuningTables {
 		m_vx.setDouble(0);
 		m_vy.setDouble(0);
 		m_dt.setDouble(0);
+		m_pigeon_error.setDouble(0);
 
 		m_shooter_angle.setDouble(kShooterAngle);
     }
@@ -78,6 +82,7 @@ public class TuningTables {
 		m_vy.setDouble(vel.y);
 
 		m_dt.setDouble(RTime.deltaTime());
+		m_pigeon_error.setDouble(Pigeon.getError());
 
         m_hub_dist_avg.setDouble(AutoAlign.m_distAvg);
 

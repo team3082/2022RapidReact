@@ -45,7 +45,7 @@ public class SwerveMod {
 		m_steer.config_kP(0, 1.1, 30);
 		m_steer.config_kI(0, 0.0, 30);
 		m_steer.config_kD(0, 0.0, 30);
-        m_steer.configMotionCruiseVelocity(20000, 30);
+        m_steer.configMotionCruiseVelocity(40000, 30);
 		m_steer.configMotionAcceleration(40000, 30);
 
         m_drive.configFactoryDefault();

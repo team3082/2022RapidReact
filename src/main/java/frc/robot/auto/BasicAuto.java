@@ -107,19 +107,26 @@ public class BasicAuto {
     public static void init(){
         index = 0;
         isDone = false;
-        threeBallTohuman();        
+        basic();        
         beginInstruction();
     }
 
     public static void basic(){
         instructions = new AutoFrame[]
         {
+            AutoFrame.Rotate(0),
+            AutoFrame.Rotate(180),
+            /*
+            AutoFrame.Rotate(0),
+            AutoFrame.Rotate(90),
+            AutoFrame.Rotate(270),
+            */
             // Intake
-            AutoFrame.MoveToAndLookAt(36, 56),
-            AutoFrame.MoveToAndLookAt(36-117, 56-15),
-            AutoFrame.Rotate(135),
+            //AutoFrame.MoveToAndLookAt(36, 56),
+            //AutoFrame.MoveToAndLookAt(36-117, 56-15),
+            //AutoFrame.Rotate(135),
             //AutoFrame.BeginAutoAlign(),
-            AutoFrame.MoveTo(36-117-42, 56-15+154),
+            //AutoFrame.MoveTo(36-117-42, 56-15+154),
 
         };
     }
