@@ -1,11 +1,8 @@
 package frc.robot;
 
-import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Joystick;
 import frc.LogitechF310;
 import frc.robot.robotmath.Vector2D;
-import frc.robot.subsystems.AutoAlign;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Pigeon;
@@ -35,7 +32,7 @@ public class OI {
     static final int kTiltHook   = LogitechF310.AXIS_LEFT_Y; 
     static final int kStartClimb = LogitechF310.BUTTON_START;
     static final int kStopClimb  = LogitechF310.BUTTON_BACK;
-
+    static final int kZeroClimber= LogitechF310.BUTTON_Y;
 
     
     public static void init(){
@@ -48,27 +45,33 @@ public class OI {
         //If climbing stop everything.
         // Operator: Stops climb
         if(Climber.isClimbing()){
-            if(m_operatorStick.getRawButton(kStopClimb))
+            if(m_operatorStick.getRawButton(kStartClimb))
                 Climber.stopClimb();
             else
                 Climber.climb();
                 return;
         }
-        
         // Operator: Starts climb
-        if(m_operatorStick.getRawButton(kStartClimb)){
+        if(m_operatorStick.getRawButton(kStopClimb)){
             Climber.startClimb();
             Climber.climb();
             return;
         }
-
+        
+        if(m_operatorStick.getRawButton(kZeroClimber)){
+          Climber.zero();
+        }
+  
         // Operator: Controlls big hook
-        if(m_operatorStick.getRawAxis(kBigHook) > 0.2)
+        if(Math.abs(m_operatorStick.getRawAxis(kBigHook)) > 0.05)
             Climber.setHook(m_operatorStick.getRawAxis(kBigHook));
-
+        else
+            Climber.setHook(0);
         // Operator: Controlls tilting hook
-        if(m_operatorStick.getRawAxis(kTiltHook) > 0.2)
-            Climber.setHook(m_operatorStick.getRawAxis(kTiltHook));
+        if(Math.abs(m_operatorStick.getRawAxis(kTiltHook)) > 0.05)
+            Climber.setScrew(m_operatorStick.getRawAxis(kTiltHook));
+        else
+            Climber.setScrew(0);
 
         // Driver: Drives
         Vector2D drive = new Vector2D(m_driverStick.getRawAxis(kMoveX), -m_driverStick.getRawAxis(kMoveY));

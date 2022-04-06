@@ -17,8 +17,8 @@ public class LogitechF310 {
     public static final int BUTTON_LEFT_BUMPER  = 5;
     public static final int BUTTON_RIGHT_BUMPER = 6;
 
-    public static final int BUTTON_BACK  = 7;
-    public static final int BUTTON_START = 8;
+    public static final int BUTTON_START = 7;
+    public static final int BUTTON_BACK  = 8;
 
     public static final int BUTTON_LEFT_STICK = 9;
     public static final int BUTTON_RIGHT_STICK = 10;

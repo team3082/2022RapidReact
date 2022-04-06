@@ -18,6 +18,7 @@ public class Robot extends TimedRobot {
 		Intake.init();
 		AutoAlign.init();
 		SwervePosition.init();
+		Climber.init();
 		OI.init();
 		
 		TuningTables.init();
@@ -25,6 +26,7 @@ public class Robot extends TimedRobot {
 
 	@Override
 	public void robotPeriodic() {
+		Climber.update();
 	}
 
 	@Override
