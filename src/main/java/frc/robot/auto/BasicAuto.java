@@ -107,7 +107,7 @@ public class BasicAuto {
     public static void init(){
         index = 0;
         isDone = false;
-        basic();        
+        threeBallTohuman();        
         beginInstruction();
     }
 
@@ -134,17 +134,26 @@ public class BasicAuto {
     public static void threeBallTohuman() {
         //NOT FINISHED!!!!
         Pigeon.setYaw(90);
-        SwervePosition.setPosition(new Vector2D(-86, -32));
+        SwervePosition.setPosition(new Vector2D(86, -39));
         instructions = new AutoFrame[]
         {
             AutoFrame.Intake(true),
-            AutoFrame.MoveToAndLookAt(-133, -39),
+            //Ball at (150,-27)
+            AutoFrame.MoveToAndLookAt(133, -39),
             AutoFrame.Intake(false),
-            AutoFrame.RevForDist(Math.hypot(-133, -39)),
+            AutoFrame.RevForDist(Math.hypot(133, -39)),
             AutoFrame.LookAt(0, 0),
             AutoFrame.Shoot(),
-            AutoFrame.RevForDist(Math.hypot(-133, -39)),
-            AutoFrame.Shoot()
+            AutoFrame.RevForDist(Math.hypot(133, -39)),
+            AutoFrame.Shoot(),
+            //3rd ball at (87, -125)
+            AutoFrame.Intake(true),
+            AutoFrame.MoveToAndLookAt(87, -125),
+            AutoFrame.RevForDist(Math.hypot(87, -125)),
+            AutoFrame.LookAt(0, 0),
+            AutoFrame.Shoot(),
+            //Human player at (118, -282)
+            AutoFrame.MoveToAndLookAt(90, -275)
 
         };
     }
