@@ -40,7 +40,7 @@ public class Shooter {
     private static final double kDeadbandRPM = 6.0;
 
     // When firing automatically, keep the handoff on only for kHandoffLifespan seconds
-    private static final double kHandoffLifespan = 0.5;
+    private static final double kHandoffLifespan = 0.2;
 
     // Handoff speeds
     private static final double kHandoffPullSpeed = 1.0;
@@ -127,7 +127,10 @@ public class Shooter {
             
             case Firing:
                 double now = RTime.now();
-
+                
+                // When we're running the handoff, run the intake too incase a ball is stuck!
+                Intake.setEnabled(true);
+                
                 // Rev the flywheel up to our set velocity
                 m_flywheel.set(TalonFXControlMode.Velocity, m_targetSpeed);
 
@@ -135,9 +138,10 @@ public class Shooter {
                 if(reachedSetpoint) {
                     m_shotLiveTime = now + kHandoffLifespan;
                     m_handoff.set(ControlMode.PercentOutput, kHandoffPullSpeed);
+                    
                 } else if(now > m_shotLiveTime) {
                     // If we're not at setpoint and the handoff has run its lifespan, then turn it off.
-                    m_handoff.set(ControlMode.PercentOutput, kHandoffStopSpeed);
+                    m_handoff.set(ControlMode.PercentOutput, kHandoffEjectSpeed);
                 }
                 break;
 
@@ -186,10 +190,23 @@ public class Shooter {
         final double grav_ftps = -32.1740486; 
         /*final*/ double shooter_angle = (TuningTables.getShooterAngle()) * Math.PI / 180.0;
         final Vector2D shooter_dir = new Vector2D(Math.sin(shooter_angle), Math.cos(shooter_angle));
-        final Vector2D hub_pos_ft = new Vector2D(0, 8 + 8/12 + 0.2);
+        final Vector2D hub_pos_ft = new Vector2D(0, 8.0 + 8.0/12.0);
+
+        // We sink the target lower as we get further away to try to avoid balls bouncing out
+        // From sink_dist_begin_ft out to sink_dist_ft, we sink from hub_pos_ft down by sink_height_ft
+        final double sink_dist_begin_ft = 10.0;
+        final double sink_dist_ft       = 25.0;
+        final double sink_height_ft     = 0.125; 
+        Vector2D target;
+        
+        if(dist_ft > sink_dist_begin_ft)
+            target = new Vector2D( 0, (dist_ft - sink_dist_begin_ft ) / (sink_dist_ft - sink_dist_begin_ft) * -sink_height_ft ).add(hub_pos_ft);
+        else
+            target = hub_pos_ft;
+        
         
         Vector2D shooter_pos_ft = new Vector2D(-dist_ft - 1, 2);
-        Vector2D delta = hub_pos_ft.sub(shooter_pos_ft);
+        Vector2D delta = target.sub(shooter_pos_ft);
 
         // The speed the ball should be at when it comes out of the shooter
         //        
@@ -209,7 +226,7 @@ public class Shooter {
         final double hood_to_wheel_ratio = hood_radius_ft / wheel_radius_ft;
 
         double freq = speed / (path_radius_ft * Math.PI) * hood_to_wheel_ratio;
-        double rpm = freq * 60;
+        double rpm = freq * 60.0;
         
         // Tweak our RPM by some tuning value "kp"
         //rpm *= kp;

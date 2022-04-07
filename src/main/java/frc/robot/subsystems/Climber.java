@@ -10,6 +10,8 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 
 public class Climber {
 
+    private static final boolean kDisabled = true;
+
     private static TalonFX hookMotor;
     private static TalonSRX screwMotor;
 
@@ -44,6 +46,8 @@ public class Climber {
     }
 
     public static void init(){
+        if(disabled()) return;
+
         nt = NetworkTableInstance.getDefault().getTable("climb");
         hookMotor = new TalonFX(0);
         hookMotor.configFactoryDefault();
@@ -70,6 +74,9 @@ public class Climber {
     public static double screwPos;
     
     public static void update(){
+        if(disabled()) return;
+
+
         hookPos = hookMotor.getSelectedSensorPosition();
         screwPos = screwMotor.getSelectedSensorPosition();
         t++;
@@ -86,27 +93,36 @@ public class Climber {
     
     
     public static boolean isClimbing(){
+        if(disabled()) return false;
+
         return climbing;
     }
     
     public static boolean isLimitHit(){
+        if(disabled()) return false;
         return screwMotor.getSensorCollection().isRevLimitSwitchClosed() || screwMotor.getSensorCollection().isFwdLimitSwitchClosed();
     }
     
     public static boolean isLimitOpen(){
+    	if(disabled()) return false;
         return !screwMotor.getSensorCollection().isRevLimitSwitchClosed() && !screwMotor.getSensorCollection().isFwdLimitSwitchClosed();
     }
     
 
     public static void startClimb(){
+        if(disabled()) return;
+        
         step = ClimbStep.RETRACT_FULL;
-        t = 0;
+		t = 0;
         climbing = true;
         setHook(0);
         setScrew(0);
     }
     
     public static void stopClimb(){
+        if(disabled()) return;
+        
+
         climbing = false;
         setHook(0);
         setScrew(0);
@@ -116,14 +132,21 @@ public class Climber {
     //TODO: fix limit here as well
 
     public static void setHook(double pow){
-        hookMotor.set(ControlMode.PercentOutput, pow);
+        if(disabled()) return;
+        if(isLimitHit())
+            hookMotor.set(ControlMode.PercentOutput, Math.min(pow,0));
+        else
+            hookMotor.set(ControlMode.PercentOutput, pow);
     }
+    
     public static void zero(){
+        if(disabled()) return;
         hookMotor.setSelectedSensorPosition(0);
         screwMotor.setSelectedSensorPosition(0);
     }
     
     public static void setScrew(double pow){
+        if(disabled()) return;
         screwMotor.set(ControlMode.PercentOutput, pow);
     }
     
@@ -199,6 +222,7 @@ public class Climber {
     }
     
     public static void climb(){
+        if(disabled()) return;
         printStep();
 
         //Hook should start at up position
@@ -357,6 +381,20 @@ public class Climber {
                 setScrew(0);
                 return;
         }
+    }
+
+
+    
+
+    private static int m_disablePrintCount = 0;
+    private static boolean disabled() {
+        if(kDisabled) {
+
+            if(m_disablePrintCount++ < 20)
+                System.out.println("WARN: CLIMBER DISABLED!!!!!!!!");
+            return true;
+        }
+        return false;
     }
 }
 

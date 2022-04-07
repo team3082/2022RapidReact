@@ -8,6 +8,9 @@ import frc.robot.robotmath.Vector2D;
 
 public class AutoAlign {
 
+    private static boolean kDisabled = true;
+
+
     private static NetworkTable m_networkTable;
     private static NetworkTableEntry nt_hub_seen;
     private static NetworkTableEntry nt_hub_ang;
@@ -23,16 +26,20 @@ public class AutoAlign {
     private static final double k_outerBand = 27.0;
 
     public static void init() {
+
+        m_lastupdatetime = 0;
+        
+        m_hubSeen = false;
+        m_hubAngle = 0.0;
+        m_distAvg = 10.0;
+        
+
+        if(disabled()) return;
         m_networkTable = NetworkTableInstance.getDefault().getTable("vis");
         nt_hub_seen = m_networkTable.getEntry("hub_seen");
         nt_hub_ang  = m_networkTable.getEntry("hub_ang");
         nt_hub_dist = m_networkTable.getEntry("hub_dist");
         
-        m_lastupdatetime = 0;
-
-        m_hubSeen = false;
-        m_hubAngle = 0.0;
-        m_distAvg = 10.0;
     }
 
     //public static boolean hasTarget(){
@@ -48,6 +55,8 @@ public class AutoAlign {
     }
 
     public static void update() {
+        if(disabled()) return;
+
 
         // If we don't have new data, we can ignore this frame
         boolean hastarget = nt_hub_seen.getBoolean(false);
@@ -106,6 +115,8 @@ public class AutoAlign {
     }
 
     public static void setAngle() {
+        if(disabled()) return;
+
 
         if(m_hubSeen)
         {
@@ -114,4 +125,14 @@ public class AutoAlign {
         }
     }
 
+
+    
+    private static int m_disabledPrintCount = 0;
+    private static boolean disabled() {
+        if(kDisabled) {
+            if(m_disabledPrintCount++ < 20) System.out.println("ERROR: VISION DISABLED!!!!");
+            return true;
+        }
+        return false;
+    }
 }
