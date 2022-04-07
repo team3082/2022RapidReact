@@ -30,7 +30,7 @@ public class OI {
     static Joystick m_operatorStick;
 
     // True: Logitech, False: Guitar Hero
-    static final boolean useLogitechOperator = false;
+    static final boolean useLogitechOperator = true;
 
     // LOGITECH OPERATOR
     static final int kLBigHook    = LogitechF310.AXIS_RIGHT_Y;
