@@ -13,7 +13,7 @@ public class Robot extends TimedRobot {
 		RTime.init();
 		SwerveManager.init();
 		Pigeon.init();
-		Pigeon.initPID(1.5, 0.75, 0, 1.0, 0.75, 1.0);
+		Pigeon.initPID(1.5, 0.1, 0, 1.0, 0.75, 3.0);
 		Shooter.init();
 		Intake.init();
 		AutoAlign.init();
@@ -34,8 +34,8 @@ public class Robot extends TimedRobot {
 		SwerveManager.zeroSteeringEncoders();
 		
 		// FIXME: Remove before competition
-		Shooter.stop();
-		SwervePosition.init();
+//		Shooter.stop();
+//		SwervePosition.init();
 	}
 
 	@Override
@@ -54,13 +54,27 @@ public class Robot extends TimedRobot {
 	@Override
 	public void testInit() {
 		System.out.println("Test Init!");
+		
+		RTime.init();
+		TuningTables.init();
+		Shooter.init();
+		
 		Pigeon.zero();
 		SwerveManager.zeroSteeringEncoders();
+
+		TestMode.init();
 	}
 
 	@Override
 	public void testPeriodic() {
 		//SwerveManager.calibrationTest();
+		
+		RTime.update();
+		
+		TestMode.update();
+		TuningTables.update();
+
+		Shooter.update();
 	}
 
 	@Override
@@ -85,9 +99,11 @@ public class Robot extends TimedRobot {
 	public void autonomousPeriodic() {
 		RTime.update();
 		SwervePosition.update();
+		AutoAlign.update();
 
 		BasicAuto.update();
 
+		Shooter.update();
 		TuningTables.update();
 	}
 }

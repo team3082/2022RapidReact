@@ -11,6 +11,7 @@ public class Intake {
         m_intakeVictor = new VictorSPX(11);
         m_intakeVictor.configFactoryDefault();
         m_intakeVictor.setInverted(true);
+        m_intakeVictor.setNeutralMode(NeutralMode.Brake);
     }
 
     public static void setSpeed(double power) {
@@ -19,7 +20,7 @@ public class Intake {
 
     public static void setEnabled(Boolean intake_control) {
         if (intake_control)
-            m_intakeVictor.set(ControlMode.PercentOutput, 0.75);
+            m_intakeVictor.set(ControlMode.PercentOutput, 0.5);
         else
             m_intakeVictor.set(ControlMode.PercentOutput, 0);
     }

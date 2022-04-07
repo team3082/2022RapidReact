@@ -32,7 +32,7 @@ public class Pigeon {
     
     // Setting this to true will make the Pigeon's 
     // PID values visable and editable from the network
-    final static boolean m_tuningmode = false;
+    final static boolean m_tuningmode = true;
     private static NetworkTable m_nt;
 
 
@@ -214,7 +214,7 @@ public class Pigeon {
            // m_lastError = 0;
         }
 
-
+        //System.out.println("^"+error + " _" + correctionPower);
         return correctionPower;
     }
 

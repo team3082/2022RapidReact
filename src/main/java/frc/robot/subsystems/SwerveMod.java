@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix.motorcontrol.NeutralMode;
+import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
@@ -69,6 +70,17 @@ public class SwerveMod {
         m_absEncoder.configMagnetOffset(0);
         m_absEncoder.configAbsoluteSensorRange(AbsoluteSensorRange.Unsigned_0_to_360);
 
+
+        // Power Management
+        // Cap off our current at 39 amps. If we go above 40 amps, the breaker will flip
+        SupplyCurrentLimitConfiguration currentLimit = new SupplyCurrentLimitConfiguration(true, 39, 39, 0 );
+        m_drive.configSupplyCurrentLimit(currentLimit);
+        // Enable voltage compensation to prevent variable behavior when the battery gets low/poor 
+        m_drive.configVoltageCompSaturation(12.5);
+        m_drive.enableVoltageCompensation(true);
+
+//        m_steer.configVoltageCompSaturation(12.0);
+//        m_steer.enableVoltageCompensation(true);
 
         m_cancoderOffset = cancoderOffset;
         m_falconOffset = falconOffset;

@@ -7,6 +7,7 @@ import frc.robot.robotmath.RTime;
 import frc.robot.robotmath.Vector2D;
 import frc.robot.subsystems.AutoAlign;
 import frc.robot.subsystems.Pigeon;
+import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.SwervePosition;
 
 // Temporary class for pushing data to the network for debugging purposes
@@ -14,10 +15,9 @@ import frc.robot.subsystems.SwervePosition;
 public class TuningTables {
     
 
-	private static final double kShooterAngle = 30.0;
 
 
-    private static final boolean kEnabled = true; 
+    private static final boolean kEnabled = false; 
 
 	private static NetworkTable m_nt;
 	private static NetworkTableEntry m_ix;
@@ -63,7 +63,7 @@ public class TuningTables {
 		m_dt.setDouble(0);
 		m_pigeon_error.setDouble(0);
 
-		m_shooter_angle.setDouble(kShooterAngle);
+		m_shooter_angle.setDouble(Shooter.kShooterAngle);
     }
 
     public static void update() {
@@ -91,7 +91,7 @@ public class TuningTables {
 
 	public static double getShooterAngle() {
 		if(kEnabled)
-			return m_shooter_angle.getDouble(kShooterAngle);	
-		return kShooterAngle;
+			return m_shooter_angle.getDouble(Shooter.kShooterAngle);	
+		return Shooter.kShooterAngle;
 	}
 }

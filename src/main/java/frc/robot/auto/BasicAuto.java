@@ -2,6 +2,7 @@ package frc.robot.auto;
 
 import frc.robot.robotmath.RTime;
 import frc.robot.robotmath.Vector2D;
+import frc.robot.subsystems.AutoAlign;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Pigeon;
 import frc.robot.subsystems.Shooter;
@@ -17,6 +18,7 @@ public class BasicAuto {
         MOVETOCOORD(),
         MOVETOANDLOOKAT(),
         LOOKAT(),
+        AUTOALIGN(),
         ROTATE(),
         INTAKE(),
         REVFORDIST(),
@@ -25,6 +27,7 @@ public class BasicAuto {
 
     public static class AutoFrame
     {
+
         static public AutoFrame Rotate(double angle)
         {
             AutoFrame frame = new AutoFrame();
@@ -69,11 +72,11 @@ public class BasicAuto {
             frame.intakeOn = intakeOn;
             return frame;
         }
-        static public AutoFrame RevForDist(double dist)
+        static public AutoFrame RevForDist(double x, double y)
         {
             AutoFrame frame = new AutoFrame();
             frame.instruction = INST.REVFORDIST;
-            frame.dist = dist;
+            frame.dist = Math.hypot(x, y)/12.0;
             return frame;
         }
         static public AutoFrame Shoot(){
@@ -82,7 +85,12 @@ public class BasicAuto {
             frame.stopTime = Double.MAX_VALUE;
             return frame;
         }
-
+        static public AutoFrame AutoAlign(){
+            AutoFrame frame = new AutoFrame();
+            frame.instruction = INST.AUTOALIGN;
+            frame.AAHubSeen = false;
+            return frame;
+        }
 
         private AutoFrame() {} 
 
@@ -96,6 +104,8 @@ public class BasicAuto {
         double dist;
 
         double targetangle;
+
+        boolean AAHubSeen;
     }
     
     private static boolean isDone = false;
@@ -104,56 +114,81 @@ public class BasicAuto {
     private static AutoFrame[] instructions;
     private static int index;
 
+    private static boolean m_intakeOn = false;
+
     public static void init(){
         index = 0;
         isDone = false;
-        threeBallTohuman();        
+        m_intakeOn = false;
+        //threeBallTohuman();
+        backupAndShoot();
+        //twoBall();
+        //basic();
         beginInstruction();
     }
 
     public static void basic(){
         instructions = new AutoFrame[]
-        {
-            AutoFrame.Rotate(0),
-            AutoFrame.Rotate(180),
-            /*
-            AutoFrame.Rotate(0),
-            AutoFrame.Rotate(90),
-            AutoFrame.Rotate(270),
-            */
-            // Intake
-            //AutoFrame.MoveToAndLookAt(36, 56),
-            //AutoFrame.MoveToAndLookAt(36-117, 56-15),
-            //AutoFrame.Rotate(135),
-            //AutoFrame.BeginAutoAlign(),
-            //AutoFrame.MoveTo(36-117-42, 56-15+154),
+        {            
+            AutoFrame.AutoAlign(),
+            AutoFrame.Shoot(),
+        };
+    }  
 
+    public static void backupAndShoot(){
+        Pigeon.setYaw(0);
+        SwervePosition.setPosition(new Vector2D(0,-94));
+        instructions = new AutoFrame[]{
+            AutoFrame.RevForDist(0,-152),
+            AutoFrame.MoveTo(0,-152),
+            AutoFrame.Shoot()
+        };
+    }
+
+    public static void twoBall(){
+        Pigeon.setYaw(180);
+        SwervePosition.setPosition(new Vector2D(0,-94));
+        instructions = new AutoFrame[]{
+            AutoFrame.MoveTo(0, -90),
+            AutoFrame.Intake(true),
+            AutoFrame.RevForDist(0,-122),
+            AutoFrame.MoveTo(0,-152),
+            AutoFrame.Intake(false),
+            AutoFrame.LookAt(0, 0),
+            AutoFrame.AutoAlign(), //auto align the robot (testing)
+            AutoFrame.Shoot(),
+            AutoFrame.RevForDist(0,-122),
+            AutoFrame.Shoot()
         };
     }
 
     public static void threeBallTohuman() {
         //NOT FINISHED!!!!
-        Pigeon.setYaw(90);
+        Pigeon.setYaw(-90);
         SwervePosition.setPosition(new Vector2D(86, -39));
         instructions = new AutoFrame[]
         {
+            AutoFrame.MoveTo(82, -39),
             AutoFrame.Intake(true),
             //Ball at (150,-27)
-            AutoFrame.MoveToAndLookAt(133, -39),
+            AutoFrame.RevForDist(133, -39),
+            AutoFrame.MoveToAndLookAt(130, -39),
             AutoFrame.Intake(false),
-            AutoFrame.RevForDist(Math.hypot(133, -39)),
             AutoFrame.LookAt(0, 0),
-            AutoFrame.Shoot(),
-            AutoFrame.RevForDist(Math.hypot(133, -39)),
             AutoFrame.Shoot(),
             //3rd ball at (87, -125)
             AutoFrame.Intake(true),
+            AutoFrame.RevForDist(87, -125),
             AutoFrame.MoveToAndLookAt(87, -125),
-            AutoFrame.RevForDist(Math.hypot(87, -125)),
+            AutoFrame.Intake(false),
             AutoFrame.LookAt(0, 0),
             AutoFrame.Shoot(),
             //Human player at (118, -282)
-            AutoFrame.MoveToAndLookAt(90, -275)
+            AutoFrame.Intake(true),
+            AutoFrame.RevForDist(90, -275),
+            AutoFrame.MoveToAndLookAt(90, -275),
+            AutoFrame.LookAt(0,0),
+            AutoFrame.Shoot()
 
         };
     }
@@ -164,9 +199,13 @@ public class BasicAuto {
         double pow = 0;
         pow = Pigeon.correctTurnWithPID();
         Vector2D movement = new Vector2D(0,0);
+        Intake.setEnabled(m_intakeOn);
+
         switch(instructions[index].instruction){
             case ROTATE:
-                //if(pow == 0){
+                
+            //if(pow == 0){
+                if(Pigeon.atSetpoint())
                     nextInstruction();
                 //} else {
                     //SwerveManager.rotateAndDrive(pow, new Vector2D());
@@ -190,7 +229,7 @@ public class BasicAuto {
                 }
                 else {
                     Vector2D direction = instructions[index].move.sub(SwervePosition.getPosition()).norm();
-                    movement = direction.mul(0.1);
+                    movement = direction.mul(0.3);
                 }
                 break;
             case MOVETOANDLOOKAT:
@@ -199,7 +238,7 @@ public class BasicAuto {
                 }
                 else {
                     Vector2D direction = instructions[index].move.sub(SwervePosition.getPosition()).norm();
-                    movement = direction.mul(0.1);
+                    movement = direction.mul(0.4);
                     
                     Pigeon.setTargetAngle(direction.atanDeg());
                     //pow = -Pigeon.correctTurnWithPID();
@@ -222,9 +261,19 @@ public class BasicAuto {
                     return;
                 }
                 Shooter.fire();
-                if(Shooter.atSetpoint()){
+                if(instructions[index].stopTime == Double.MAX_VALUE && Shooter.atSetpoint()){
                     instructions[index].stopTime = RTime.now() + 0.5;   
+                    System.out.println("stop time set");
                 }
+                break;
+            case AUTOALIGN:
+                if (AutoAlign.m_hubSeen && !instructions[index].AAHubSeen) {
+                    instructions[index].AAHubSeen = true;
+                    AutoAlign.setAngle();
+                }
+                if (instructions[index].AAHubSeen && Pigeon.atSetpoint())
+                    nextInstruction();
+                
                 break;
             default:
                 break;
@@ -257,7 +306,7 @@ public class BasicAuto {
                 }
                 break;
             case INTAKE:
-                Intake.setEnabled(instructions[index].intakeOn);
+                m_intakeOn = instructions[index].intakeOn;
                 nextInstruction();
                 break;
             case REVFORDIST:

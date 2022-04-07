@@ -24,6 +24,9 @@ public class Shooter {
     }
 
 
+	public static final double kShooterAngle = 24.0;
+
+
     // falcon / wheel 
     private static final double kShooterBeltRatio = 1; // 0.95/0.64
 
@@ -37,10 +40,10 @@ public class Shooter {
     
 
     // Only fire when within this many RPM of our target
-    private static final double kDeadbandRPM = 6.0;
+    private static final double kDeadbandRPM = 18.0;
 
     // When firing automatically, keep the handoff on only for kHandoffLifespan seconds
-    private static final double kHandoffLifespan = 0.2;
+    private static final double kHandoffLifespan = 0.075;
 
     // Handoff speeds
     private static final double kHandoffPullSpeed = 1.0;
@@ -49,8 +52,8 @@ public class Shooter {
     private static final double kHandoffStopSpeed = 0.0;
 
 
-    private static VictorSPX m_handoff;
-    private static TalonFX m_flywheel;
+    public static VictorSPX m_handoff;
+    public static TalonFX m_flywheel;
 
     private static ShooterMode m_mode    = ShooterMode.Stopped;
     private static double m_targetSpeed  = 0;
@@ -85,15 +88,15 @@ public class Shooter {
         m_flywheel.setNeutralMode(NeutralMode.Coast);
         
         // Configure the PID for our velocity control
-        m_flywheel.config_kP(0, 0.12);
-        m_flywheel.config_kI(0, 0.008);
+        m_flywheel.config_kP(0, 0.2);
+        m_flywheel.config_kI(0, 0.01);
         m_flywheel.config_kD(0, 0);
         
         // Use a long loop period so we rev up to speed gently
         m_flywheel.configClosedLoopPeriod(0, 1200);
         
-        // Cap off our current at 35 amps. If we go above 40 amps, the breaker will flip
-        SupplyCurrentLimitConfiguration currentLimit = new SupplyCurrentLimitConfiguration(true, 35, 35, 0 );
+        // Cap off our current at 39 amps. If we go above 40 amps, the breaker will flip
+        SupplyCurrentLimitConfiguration currentLimit = new SupplyCurrentLimitConfiguration(true, 39, 39, 0 );
         m_flywheel.configSupplyCurrentLimit(currentLimit);
         
         // Enable voltage compensation to prevent variable behavior when the battery gets low/poor 
@@ -128,20 +131,21 @@ public class Shooter {
             case Firing:
                 double now = RTime.now();
                 
-                // When we're running the handoff, run the intake too incase a ball is stuck!
-                Intake.setEnabled(true);
                 
                 // Rev the flywheel up to our set velocity
                 m_flywheel.set(TalonFXControlMode.Velocity, m_targetSpeed);
-
+                
                 // Pass in the ball only when it's at the setpoint
                 if(reachedSetpoint) {
                     m_shotLiveTime = now + kHandoffLifespan;
                     m_handoff.set(ControlMode.PercentOutput, kHandoffPullSpeed);
+                    // When we're running the handoff, run the intake too incase a ball is stuck!
+                    Intake.setEnabled(true);
                     
                 } else if(now > m_shotLiveTime) {
                     // If we're not at setpoint and the handoff has run its lifespan, then turn it off.
                     m_handoff.set(ControlMode.PercentOutput, kHandoffEjectSpeed);
+                    Intake.setEnabled(false);
                 }
                 break;
 
@@ -205,7 +209,7 @@ public class Shooter {
             target = hub_pos_ft;
         
         
-        Vector2D shooter_pos_ft = new Vector2D(-dist_ft - 1, 2);
+        Vector2D shooter_pos_ft = new Vector2D(-dist_ft, 2);
         Vector2D delta = target.sub(shooter_pos_ft);
 
         // The speed the ball should be at when it comes out of the shooter
@@ -219,11 +223,12 @@ public class Shooter {
         final double hood_radius_ft = 11.5 / 12.0;
         final double ball_compressed_radius_ft = 0.5 * (hood_radius_ft - wheel_radius_ft);
         final double path_radius_ft = wheel_radius_ft + ball_compressed_radius_ft;
-
+        
         // hood_to_ball * ball_to_wheel
         // ball cancels out
         // hood_to_wheel
-        final double hood_to_wheel_ratio = hood_radius_ft / wheel_radius_ft;
+        final double magic_multiplier = 0.8893; // AAAA!
+        final double hood_to_wheel_ratio = hood_radius_ft * magic_multiplier / wheel_radius_ft;
 
         double freq = speed / (path_radius_ft * Math.PI) * hood_to_wheel_ratio;
         double rpm = freq * 60.0;

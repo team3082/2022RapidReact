@@ -40,4 +40,16 @@ public class RMath {
         return destination;
     }
 
+
+    public static double smoothJoystick1(double val) {
+        //return val * val * val;
+        return (val*val) * Math.signum(val);
+
+    }
+    public static Vector2D smoothJoystick2(double x, double y) {
+        Vector2D dir = new Vector2D(x, y);
+        double mag = dir.mag();
+        mag = mag * mag;
+        return dir.norm().mul(mag);
+    }
 }

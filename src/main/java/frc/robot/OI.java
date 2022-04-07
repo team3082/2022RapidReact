@@ -1,9 +1,15 @@
 package frc.robot;
 
+import com.ctre.phoenix.sensors.Pigeon2;
+
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Joystick;
 import frc.controllermaps.GuitarHero;
 import frc.controllermaps.LogitechF310;
+import frc.controllermaps.PS3;
+import frc.robot.robotmath.RMath;
 import frc.robot.robotmath.Vector2D;
+import frc.robot.subsystems.AutoAlign;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Pigeon;
@@ -20,16 +26,16 @@ public class OI {
     static final int kRotateX       = LogitechF310.AXIS_RIGHT_X;
     static final int kBoost         = LogitechF310.AXIS_LEFT_TRIGGER;
 
-    static final int kPigeonZero    = LogitechF310.BUTTON_START;
+    static final int kPigeonZero    = LogitechF310.BUTTON_Y;
     static final int kShooterRev    = LogitechF310.BUTTON_RIGHT_BUMPER;
     static final int kShooterFire   = LogitechF310.BUTTON_LEFT_BUMPER;
     static final int kShooterManual = LogitechF310.BUTTON_X;
     static final int kIntakePull    = LogitechF310.AXIS_RIGHT_TRIGGER;
-    static final int kEject         = LogitechF310.BUTTON_BACK;
+    static final int kEject         = LogitechF310.BUTTON_B;
 
     static Joystick m_operatorStick;
 
-    // True: Logitech, False: Guitar Hero
+    // True: Logitech, False: PS3
     static final boolean useLogitechOperator = true;
 
     // LOGITECH OPERATOR
@@ -39,20 +45,28 @@ public class OI {
     static final int kLStopClimb  = LogitechF310.BUTTON_BACK;
     static final int kLZeroClimber= LogitechF310.BUTTON_Y;
 
+    //PS3 OPERATOR
+    static final int kPBigHook    = PS3.AXIS_RIGHT_Y;
+    static final int kPTiltHook   = PS3.AXIS_LEFT_Y; 
+    static final int kPStartClimb = PS3.BUTTON_START;
+    static final int kPStopClimb  = PS3.BUTTON_SELECT;
+    static final int kPZeroClimber= PS3.BUTTON_TRIANGLE;
+
     //GUITAR HERO OPERATOR
-    static final int kGBigHookUp   = GuitarHero.BUTTON_TOP_G;
-    static final int kGBigHookDown = GuitarHero.BUTTON_TOP_R;
-    static final int kGTiltHookOut = GuitarHero.BUTTON_TOP_Y;
-    static final int kGTiltHookIn  = GuitarHero.BUTTON_TOP_B; 
-    static final int kGHookPower   = GuitarHero.AXIS_WHAMMY_BAR;
-    static final int kGStartClimb  = GuitarHero.BUTTON_START;
-    static final int kGStopClimb   = GuitarHero.BUTTON_BACK;
-    static final int kGZeroClimber = GuitarHero.BUTTON_TOP_O;
+    // static final int kGBigHookUp   = GuitarHero.BUTTON_TOP_G;
+    // static final int kGBigHookDown = GuitarHero.BUTTON_TOP_R;
+    // static final int kGTiltHookOut = GuitarHero.BUTTON_TOP_Y;
+    // static final int kGTiltHookIn  = GuitarHero.BUTTON_TOP_B; 
+    // static final int kGHookPower   = GuitarHero.AXIS_WHAMMY_BAR;
+    // static final int kGStartClimb  = GuitarHero.BUTTON_START;
+    // static final int kGStopClimb   = GuitarHero.BUTTON_BACK;
+    // static final int kGZeroClimber = GuitarHero.BUTTON_TOP_O;
 
     
     public static void init(){
         m_driverStick = new Joystick(0);
-        m_operatorStick = new Joystick(1);
+        m_operatorStick = new Joystick(useLogitechOperator?1:2);
+        NetworkTableInstance.getDefault().getTable("help").getEntry("dist").setDouble(0);
     }
 
     public static void joystickInput(){
@@ -60,22 +74,44 @@ public class OI {
         //If climbing stop everything.
         // Operator: Stops climb
         if(Climber.isClimbing()){
-            if(m_operatorStick.getRawButton(useLogitechOperator ? kLStartClimb : kGStartClimb))
+            if(m_operatorStick.getRawButton(useLogitechOperator ? kLStopClimb : kPStopClimb))
                 Climber.stopClimb();
             else
                 Climber.climb();
                 return;
         }
         // Operator: Starts climb
-        if(m_operatorStick.getRawButton(useLogitechOperator ? kLStopClimb : kGStopClimb)){
+        if(m_operatorStick.getRawButton(useLogitechOperator ? kLStartClimb : kPStartClimb)){
             Climber.startClimb();
             Climber.climb();
             return;
         }
+
+        if(m_operatorStick.getRawButton(2)){
+            Climber.startHighBarClimb();
+            Climber.climb();
+            return;
+        }
         
-        if(m_operatorStick.getRawButton(useLogitechOperator ? kLZeroClimber : kGZeroClimber)){
+        if(m_operatorStick.getRawButton(useLogitechOperator ? kLZeroClimber : kPZeroClimber)){
           Climber.zero();
         }
+
+        // Operator: Controls big hook
+        if(m_operatorStick.getRawButton(1)){
+            Climber.gotoStart();
+        } else if(Math.abs(m_operatorStick.getRawAxis(useLogitechOperator ? kLBigHook : kPBigHook)) > 0.05)
+            Climber.setHook(m_operatorStick.getRawAxis(useLogitechOperator ? kLBigHook : kPBigHook));
+        else
+            Climber.setHook(0);
+
+        //Operator: Controls tilting hook
+        if(Math.abs(m_operatorStick.getRawAxis(useLogitechOperator ? kLTiltHook : kPTiltHook)) > 0.05)
+            Climber.setScrew(m_operatorStick.getRawAxis(useLogitechOperator ? kLTiltHook : kPTiltHook));
+        else
+            Climber.setScrew(0);
+
+        /*
         if (useLogitechOperator) {
             // LOGITECH OPERATOR
             // Operator: Controls big hook
@@ -108,31 +144,32 @@ public class OI {
             else
                 Climber.setScrew(0);
         }
+        */
 
         // Driver: Drives
-        Vector2D drive = new Vector2D(m_driverStick.getRawAxis(kMoveX), -m_driverStick.getRawAxis(kMoveY));
-
+        Vector2D drive = RMath.smoothJoystick2(m_driverStick.getRawAxis(kMoveX), -m_driverStick.getRawAxis(kMoveY));
         // Driver: Boosts
         double boost = m_driverStick.getRawAxis(kBoost);
-        boost = boost * 0.7 + 0.3;
+        final double defaultSpeed = 0.5;
+        boost = boost * (1.0 - defaultSpeed) + defaultSpeed;
 
         // While shooting, slow us waaay down
         if(Shooter.firing())
             boost *= 0.1 / 0.4;
 
         // Joystick deadzone for drive
-        if(drive.mag() < 0.05)
+        if(drive.mag() < 0.01)
             drive = new Vector2D(0, 0); 
         else
             drive = drive.mul(boost);
 
         //Driver: Rotates
         double rotate = -m_driverStick.getRawAxis(kRotateX);
+        rotate = RMath.smoothJoystick1(rotate) * 0.3;
+
         //Joystick deadzone for rotation
-        if(Math.abs(rotate) < 0.05)
+        if(Math.abs(rotate) < 0.01)
             rotate = 0;
-        else
-            rotate = Math.pow(rotate,2) * boost * Math.signum(rotate);
 
         //Old rotation method (Rotates to angle of stick)
         /*
@@ -176,7 +213,7 @@ public class OI {
             boolean shooterAutoFire = m_driverStick.getRawButton(kShooterFire);
             // Driver: Manually fires the shooter with a set rpm
             boolean manualFire = m_driverStick.getRawButton(kShooterManual);
-            final double manualFireRPM = 2500.0;
+            final double manualFireRPM = 2000.0;
 
             // Always use odometry for auto firing.
             // Odomotry gets instantly updated when the camera sees the hub,
@@ -185,17 +222,15 @@ public class OI {
             // We only ever want to be aligning if we're in auto fire mode 
             if(shooterAutoFire && !manualFire) {
 
-                double heading = Pigeon.getRotation() / 180.0 * Math.PI;
-                Vector2D robotPos = SwervePosition.getPosition();
-                Vector2D shooterOffset = new Vector2D(Math.cos(heading), Math.sin(heading)).mul(12 + 5/8);
-                Vector2D shooterPos = robotPos.add(shooterOffset);
+                //double heading = Pigeon.getRotation() / 180.0 * Math.PI;
+                //Vector2D robotPos = SwervePosition.getPosition();
+                //Vector2D shooterOffset = new Vector2D(Math.cos(heading), Math.sin(heading)).mul(12 + 5/8);
+                //Vector2D shooterPos = robotPos;//robotPos.add(shooterOffset);
                 
                 // Multiply by -1 so that we're pointing towards 0
-                Vector2D dir = shooterPos.mul(-1).norm();
-                
-                double ang = dir.atanDeg();
-                Pigeon.setTargetAngle(ang);
-                //System.out.println(ang);
+                //Vector2D dir = shooterPos.mul(-1).norm();
+                AutoAlign.setAngle();
+
                 rotate = Pigeon.correctTurnWithPID();
             } else {
                 Pigeon.stop();
@@ -210,8 +245,11 @@ public class OI {
                 Shooter.fire();
             } else if(shooterAutoFire) {
                 // Rev and fire the shooter for our position on the field
-                Shooter.setRPMForDist(SwervePosition.getPosition().mag() / 12.0);
-                Shooter.fire();   
+                //Shooter.setRPMForDist(NetworkTableInstance.getDefault().getTable("help").getEntry("dist").getDouble(0));
+                //Shooter.setRPMForDist(SwervePosition.getPosition().mag() / 12.0);
+                Shooter.revTo(manualFireRPM);
+                if(Pigeon.atSetpoint())
+                    Shooter.fire();   
             } else if (shooterRev) {
                 // Rev the shooter to a set rpm, somewhere about the middle of the field
                 Shooter.revTo(manualFireRPM);

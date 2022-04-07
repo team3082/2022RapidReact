@@ -7,10 +7,12 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import frc.CANMap;
+import frc.robot.robotmath.Vector2D;
 
 public class Climber {
 
-    private static final boolean kDisabled = true;
+    private static final boolean kDisabled = false;
 
     private static TalonFX hookMotor;
     private static TalonSRX screwMotor;
@@ -49,19 +51,20 @@ public class Climber {
         if(disabled()) return;
 
         nt = NetworkTableInstance.getDefault().getTable("climb");
-        hookMotor = new TalonFX(0);
+        hookMotor = new TalonFX(CANMap.CLIMBER_HOOK);
         hookMotor.configFactoryDefault();
         hookMotor.setInverted(false);
         hookMotor.setNeutralMode(NeutralMode.Brake);
         hookMotor.config_kF(0, 0, 30);
-        hookMotor.config_kP(0, 0.1, 30);
+        hookMotor.config_kP(0, 1, 30);
         hookMotor.config_kI(0, 0, 30);
         hookMotor.config_kD(0, 0.05, 30);
         
-        screwMotor = new TalonSRX(12);
+        screwMotor = new TalonSRX(CANMap.CLIMBER_SCREW);
 //        screwMotor.configFactoryDefault();
         screwMotor.setInverted(true);
         screwMotor.setNeutralMode(NeutralMode.Brake);
+
 
         Climber.zero();
 
@@ -100,7 +103,7 @@ public class Climber {
     
     public static boolean isLimitHit(){
         if(disabled()) return false;
-        return screwMotor.getSensorCollection().isRevLimitSwitchClosed() || screwMotor.getSensorCollection().isFwdLimitSwitchClosed();
+        return screwMotor.getSensorCollection().isRevLimitSwitchClosed() && screwMotor.getSensorCollection().isFwdLimitSwitchClosed();
     }
     
     public static boolean isLimitOpen(){
@@ -112,17 +115,35 @@ public class Climber {
     public static void startClimb(){
         if(disabled()) return;
         
-        step = ClimbStep.RETRACT_FULL;
+        //Remove so we can resume
+        //step = ClimbStep.RETRACT_FULL;
+		t = 0;
+        high = false;
+        climbing = true;
+        SwerveManager.rotateAndDrive(0, new Vector2D(0, 0));
+        Intake.setEnabled(false);
+        setHook(0);
+        setScrew(0);
+    }
+
+    static boolean high = false;
+
+    public static void startHighBarClimb(){
+        if(disabled()) return;
+        high = true;
+        SwerveManager.rotateAndDrive(0, new Vector2D(0, 0));
+        Intake.setEnabled(false);
+        //Remove so we can resume
+        //step = ClimbStep.RETRACT_FULL;
 		t = 0;
         climbing = true;
+
         setHook(0);
         setScrew(0);
     }
     
     public static void stopClimb(){
         if(disabled()) return;
-        
-
         climbing = false;
         setHook(0);
         setScrew(0);
@@ -133,9 +154,13 @@ public class Climber {
 
     public static void setHook(double pow){
         if(disabled()) return;
-        if(isLimitHit())
-            hookMotor.set(ControlMode.PercentOutput, Math.min(pow,0));
-        else
+
+        double pos = hookMotor.getSelectedSensorPosition();
+
+        // DO NOT DRIVE INTO THE BASE OR TOP!!
+//        if( (pow > 0 && pos >= -70000.0) || (pow < 0 && pos <= -930000.0))
+ //           hookMotor.set(ControlMode.PercentOutput, 0);
+  //      else
             hookMotor.set(ControlMode.PercentOutput, pow);
     }
     
@@ -159,17 +184,21 @@ public class Climber {
 
     //TODO: fix limit switches
 
-
+    public static void gotoStart(){
+        hookMotor.set(ControlMode.Position, -990000);
+    }
 
     static int m_hookclimbstate = 0;
     static void climbPastHookComplete() {
         m_hookclimbstate = 0;
     }
-    static boolean climbPastHook() {
 
-        final double slowspeed = 0.25;
-        final double fastspeed = 1.00;
+    static boolean climbPastHook(double bigS) {
+
+        final double slowspeed = 0.35;
+        final double fastspeed = bigS;
         
+        System.out.println("!"+m_hookclimbstate);
         if(m_hookclimbstate == 2)
             return true;
 
@@ -232,18 +261,18 @@ public class Climber {
             case RETRACT_FULL:
 
                 boolean screwHit = screwPos > 2800.0;//5400;
-                boolean hookHit = climbPastHook();
+                boolean hookHit = climbPastHook(t<150?0.5:1);
 
                 if(screwHit){
                     setScrew(0);
-                } else if(t>75){
+                } else if(t>150){
                     setScrew(-0.4);
                 }
 
                 if(screwHit && hookHit) { 
                     climbPastHookComplete();
 
-                    encoderDest = hookPos-890000;//950000;//Full Extension
+                    encoderDest = hookPos-850000;//950000;//Full Extension
                     step = ClimbStep.EXTEND_TO_SECONDARY_HOOK;
                 } 
 
@@ -267,7 +296,7 @@ public class Climber {
                     setHook(0);
                     step = ClimbStep.EXTEND_FULL;
                 } else {
-                    setHook(-0.25);
+                    setHook(-0.35);
                 }
                 break;
             //EXTEND HOOK
@@ -282,11 +311,16 @@ public class Climber {
                 break;
             //PUT HOOK IN POSITION TO GRAB
             case POSITION_HOOK_TO_GRAB:
-                if(screwPos <= 1314/*2600*/){
+                if(screwPos <= 600/*2600*/){
                     setScrew(0);
-                    step = ClimbStep.RETRACT_OVER_BAR;
+                    if(!high)
+                        step = ClimbStep.RETRACT_OVER_BAR;
+                    else {
+                        step = ClimbStep.RETRACT_FINAL;
+                        encoderDest+=300000;
+                    }
                 } else {
-                    setScrew(0.5);
+                    setScrew(1);
                 }
                 break;
             //PUT HOOK OVER BAR
@@ -300,9 +334,10 @@ public class Climber {
                 break;
             //SWING OUT BOTTOM OF ROBOT TO ALIGN CENTER OF MASS
             case SWING_OUT_BASE:
-                if(screwPos >= 20303){
+                if(screwPos >= 20200){//20303){
                     setScrew(0);
-                    step = ClimbStep.EXTEND_FULL_2;
+                    step = ClimbStep.RETRACT_FULL_2;
+                    m_hookclimbstate = 0;
                 } else {
                     setScrew(-1);
                 }
@@ -310,9 +345,8 @@ public class Climber {
             //Stage 2- retract hook fully
             case RETRACT_FULL_2:
 
-
-                boolean screwHit_2 = screwPos > 2800; //5400;
-                boolean hookHit_2 = climbPastHook();
+                boolean screwHit_2 = screwPos < 2800; //5400;
+                boolean hookHit_2 = climbPastHook(0.75);
 
                 if(screwHit_2){
                     setScrew(0);
@@ -323,7 +357,7 @@ public class Climber {
                 if(screwHit_2 && hookHit_2) { 
                     climbPastHookComplete();
 
-                    encoderDest = hookPos-890000;//950000;//Full Extension
+                    encoderDest = hookPos-850000;//950000;//Full Extension
                     step = ClimbStep.EXTEND_TO_SECONDARY_HOOK_2;
                 } 
 
@@ -360,11 +394,11 @@ public class Climber {
                 break;
             //PUT HOOK IN POSITION TO GRAB
             case POSITION_HOOK_TO_GRAB_2:
-                if(screwPos <= 1314/*2600*/){
+                if(screwPos < 600/*2600*/){
                     setScrew(0);
                     step = ClimbStep.RETRACT_FINAL;
                 } else {
-                    setScrew(0.5);
+                    setScrew(1);
                 }
                 break;
             //PULL ONTO LAST BAR
@@ -391,7 +425,7 @@ public class Climber {
         if(kDisabled) {
 
             if(m_disablePrintCount++ < 20)
-                System.out.println("WARN: CLIMBER DISABLED!!!!!!!!");
+                System.out.println("ERROR: CLIMBER DISABLED!!!!!!!!");
             return true;
         }
         return false;

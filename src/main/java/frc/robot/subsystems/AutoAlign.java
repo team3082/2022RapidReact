@@ -8,7 +8,7 @@ import frc.robot.robotmath.Vector2D;
 
 public class AutoAlign {
 
-    private static boolean kDisabled = true;
+    private static boolean kDisabled = false;
 
 
     private static NetworkTable m_networkTable;
@@ -80,10 +80,12 @@ public class AutoAlign {
         double dist = nt_hub_dist.getDouble(12.5);
 
         //Check for bad data
+        /*
         if(dist < k_innerBand || dist > k_outerBand){
             m_hubSeen = false;
             return;
         }
+        */
 
         // Time since last recv from the Pi
         double curtime = RTime.now();
@@ -109,9 +111,9 @@ public class AutoAlign {
         m_distAvg = m_distAvg * (1.0 - scale) + dist * (scale);
 
         //Update odometry position
-        double a = Pigeon.getRotation() - m_hubAngle;
-        a = (Math.PI*0.5) + Math.PI*(a/180.0);
-        SwervePosition.setPosition(new Vector2D(Math.cos(a)*m_distAvg, Math.sin(a)*m_distAvg).mul(-12));
+        //double a = Pigeon.getRotation() - m_hubAngle;
+        //a = (Math.PI*0.5) + Math.PI*(a/180.0);
+        //SwervePosition.setPosition(new Vector2D(Math.cos(a)*m_distAvg, Math.sin(a)*m_distAvg).mul(-12));
     }
 
     public static void setAngle() {
