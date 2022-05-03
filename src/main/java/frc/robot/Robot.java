@@ -13,7 +13,7 @@ public class Robot extends TimedRobot {
 		RTime.init();
 		SwerveManager.init();
 		Pigeon.init();
-		Pigeon.initPID(1.5, 0.1, 0, 1.0, 0.75, 3.0);
+		Pigeon.initPID(1.75, 0.1, 0, 1.0, 0.75, 3.0);
 		Shooter.init();
 		Intake.init();
 		AutoAlign.init();
@@ -99,7 +99,6 @@ public class Robot extends TimedRobot {
 	public void autonomousPeriodic() {
 		RTime.update();
 		SwervePosition.update();
-		AutoAlign.update();
 
 		BasicAuto.update();
 

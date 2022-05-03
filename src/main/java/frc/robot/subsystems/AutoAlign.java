@@ -73,11 +73,10 @@ public class AutoAlign {
         nt_hub_seen.setBoolean(false);
 
         
-        
 
         // New data
         m_hubAngle  = nt_hub_ang.getDouble(0.0);
-        double dist = nt_hub_dist.getDouble(12.5);
+        double dist = nt_hub_dist.getDouble(10.5) + 2.0;
 
         //Check for bad data
         /*
@@ -111,9 +110,9 @@ public class AutoAlign {
         m_distAvg = m_distAvg * (1.0 - scale) + dist * (scale);
 
         //Update odometry position
-        //double a = Pigeon.getRotation() - m_hubAngle;
-        //a = (Math.PI*0.5) + Math.PI*(a/180.0);
-        //SwervePosition.setPosition(new Vector2D(Math.cos(a)*m_distAvg, Math.sin(a)*m_distAvg).mul(-12));
+        double a = Pigeon.getRotation() - m_hubAngle;
+        a = (Math.PI*0.5) + Math.PI*(a/180.0);
+        SwervePosition.setPosition(new Vector2D(Math.cos(a)*m_distAvg, Math.sin(a)*m_distAvg).mul(-12));
     }
 
     public static void setAngle() {

@@ -1,7 +1,5 @@
 package frc.robot;
 
-import com.ctre.phoenix.sensors.Pigeon2;
-
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Joystick;
 import frc.controllermaps.GuitarHero;
@@ -9,7 +7,6 @@ import frc.controllermaps.LogitechF310;
 import frc.controllermaps.PS3;
 import frc.robot.robotmath.RMath;
 import frc.robot.robotmath.Vector2D;
-import frc.robot.subsystems.AutoAlign;
 import frc.robot.subsystems.Climber;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Pigeon;
@@ -146,29 +143,34 @@ public class OI {
         }
         */
 
-        // Driver: Drives
-        Vector2D drive = RMath.smoothJoystick2(m_driverStick.getRawAxis(kMoveX), -m_driverStick.getRawAxis(kMoveY));
         // Driver: Boosts
         double boost = m_driverStick.getRawAxis(kBoost);
         final double defaultSpeed = 0.5;
         boost = boost * (1.0 - defaultSpeed) + defaultSpeed;
 
+        // Driver: Drives
+        Vector2D drive = new Vector2D(m_driverStick.getRawAxis(kMoveX), -m_driverStick.getRawAxis(kMoveY));
+        
+        // Joystick deadzone for drive
+        if(drive.mag() < 0.125)
+            drive = new Vector2D(0, 0); 
+        else
+        {
+            // Smooth and boost
+            drive = RMath.smoothJoystick2(drive).mul(boost);
+        }
+            
         // While shooting, slow us waaay down
         if(Shooter.firing())
             boost *= 0.1 / 0.4;
 
-        // Joystick deadzone for drive
-        if(drive.mag() < 0.01)
-            drive = new Vector2D(0, 0); 
-        else
-            drive = drive.mul(boost);
 
         //Driver: Rotates
         double rotate = -m_driverStick.getRawAxis(kRotateX);
         rotate = RMath.smoothJoystick1(rotate) * 0.3;
 
         //Joystick deadzone for rotation
-        if(Math.abs(rotate) < 0.01)
+        if(Math.abs(rotate) < 0.005)
             rotate = 0;
 
         //Old rotation method (Rotates to angle of stick)
@@ -223,14 +225,16 @@ public class OI {
             if(shooterAutoFire && !manualFire) {
 
                 //double heading = Pigeon.getRotation() / 180.0 * Math.PI;
-                //Vector2D robotPos = SwervePosition.getPosition();
+                Vector2D robotPos = SwervePosition.getPosition();
                 //Vector2D shooterOffset = new Vector2D(Math.cos(heading), Math.sin(heading)).mul(12 + 5/8);
-                //Vector2D shooterPos = robotPos;//robotPos.add(shooterOffset);
+                Vector2D shooterPos = robotPos;//robotPos.add(shooterOffset);
                 
                 // Multiply by -1 so that we're pointing towards 0
-                //Vector2D dir = shooterPos.mul(-1).norm();
-                AutoAlign.setAngle();
-
+                Vector2D dir = shooterPos.mul(-1).norm();
+                
+                double ang = dir.atanDeg();
+                Pigeon.setTargetAngle(ang);
+                //System.out.println(ang);
                 rotate = Pigeon.correctTurnWithPID();
             } else {
                 Pigeon.stop();
@@ -245,11 +249,10 @@ public class OI {
                 Shooter.fire();
             } else if(shooterAutoFire) {
                 // Rev and fire the shooter for our position on the field
-                //Shooter.setRPMForDist(NetworkTableInstance.getDefault().getTable("help").getEntry("dist").getDouble(0));
-                //Shooter.setRPMForDist(SwervePosition.getPosition().mag() / 12.0);
-                Shooter.revTo(manualFireRPM);
-                if(Pigeon.atSetpoint())
-                    Shooter.fire();   
+                //Shooter.setRPMForDist();
+                Shooter.setRPMForDist(SwervePosition.getPosition().mag() / 12.0);
+                //Shooter.revTo(manualFireRPM);
+                Shooter.fire();   
             } else if (shooterRev) {
                 // Rev the shooter to a set rpm, somewhere about the middle of the field
                 Shooter.revTo(manualFireRPM);

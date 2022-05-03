@@ -1,5 +1,7 @@
 package frc.robot.robotmath;
 
+import edu.wpi.first.math.Vector;
+
 public class RMath {
     /** 
      * Converts an target angle within a certain range to an absolute target angle, based
@@ -46,8 +48,7 @@ public class RMath {
         return (val*val) * Math.signum(val);
 
     }
-    public static Vector2D smoothJoystick2(double x, double y) {
-        Vector2D dir = new Vector2D(x, y);
+    public static Vector2D smoothJoystick2(Vector2D dir) {
         double mag = dir.mag();
         mag = mag * mag;
         return dir.norm().mul(mag);

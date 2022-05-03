@@ -43,7 +43,7 @@ public class Shooter {
     private static final double kDeadbandRPM = 18.0;
 
     // When firing automatically, keep the handoff on only for kHandoffLifespan seconds
-    private static final double kHandoffLifespan = 0.075;
+    private static final double kHandoffLifespan = 1.0;
 
     // Handoff speeds
     private static final double kHandoffPullSpeed = 1.0;
@@ -88,15 +88,15 @@ public class Shooter {
         m_flywheel.setNeutralMode(NeutralMode.Coast);
         
         // Configure the PID for our velocity control
-        m_flywheel.config_kP(0, 0.2);
-        m_flywheel.config_kI(0, 0.01);
+        m_flywheel.config_kP(0, 0.3);
+        m_flywheel.config_kI(0, 0.011);
         m_flywheel.config_kD(0, 0);
         
         // Use a long loop period so we rev up to speed gently
-        m_flywheel.configClosedLoopPeriod(0, 1200);
+        m_flywheel.configClosedLoopPeriod(0, 1300);
         
         // Cap off our current at 39 amps. If we go above 40 amps, the breaker will flip
-        SupplyCurrentLimitConfiguration currentLimit = new SupplyCurrentLimitConfiguration(true, 39, 39, 0 );
+        SupplyCurrentLimitConfiguration currentLimit = new SupplyCurrentLimitConfiguration(true, 40, 40, 0 );
         m_flywheel.configSupplyCurrentLimit(currentLimit);
         
         // Enable voltage compensation to prevent variable behavior when the battery gets low/poor 
@@ -188,26 +188,25 @@ public class Shooter {
 
     public static void setRPMForDist(double dist_ft)
     {
+        // Take half a foot off our shot so that we bank it against the wall
+        dist_ft -= 0.5;
+
         // Big Gray Wheel
-        final double wheel_radius_ft = 8 /* inch diameter */ / 2.0 / 12.0;
+        final double wheel_radius_ft = 8.0 /* inch diameter */ / 2.0 / 12.0;
         
         final double grav_ftps = -32.1740486; 
         /*final*/ double shooter_angle = (TuningTables.getShooterAngle()) * Math.PI / 180.0;
         final Vector2D shooter_dir = new Vector2D(Math.sin(shooter_angle), Math.cos(shooter_angle));
-        final Vector2D hub_pos_ft = new Vector2D(0, 8.0 + 8.0/12.0);
+        final Vector2D hub_pos_ft  = new Vector2D(0, 8.0 + 8.0/12.0);
 
         // We sink the target lower as we get further away to try to avoid balls bouncing out
         // From sink_dist_begin_ft out to sink_dist_ft, we sink from hub_pos_ft down by sink_height_ft
         final double sink_dist_begin_ft = 10.0;
         final double sink_dist_ft       = 25.0;
         final double sink_height_ft     = 0.125; 
-        Vector2D target;
-        
-        if(dist_ft > sink_dist_begin_ft)
-            target = new Vector2D( 0, (dist_ft - sink_dist_begin_ft ) / (sink_dist_ft - sink_dist_begin_ft) * -sink_height_ft ).add(hub_pos_ft);
-        else
-            target = hub_pos_ft;
-        
+
+
+        Vector2D target = new Vector2D( 0, (dist_ft - sink_dist_begin_ft ) / (sink_dist_ft - sink_dist_begin_ft) * -sink_height_ft ).add(hub_pos_ft);
         
         Vector2D shooter_pos_ft = new Vector2D(-dist_ft, 2);
         Vector2D delta = target.sub(shooter_pos_ft);
@@ -224,17 +223,17 @@ public class Shooter {
         final double ball_compressed_radius_ft = 0.5 * (hood_radius_ft - wheel_radius_ft);
         final double path_radius_ft = wheel_radius_ft + ball_compressed_radius_ft;
         
+        // I think this has something to do with the compression and/or math to real life tuning magic 
+        final double magic_multiplier = 0.8893; // AAAA!
+
         // hood_to_ball * ball_to_wheel
         // ball cancels out
         // hood_to_wheel
-        final double magic_multiplier = 0.8893; // AAAA!
-        final double hood_to_wheel_ratio = hood_radius_ft * magic_multiplier / wheel_radius_ft;
+        final double hood_to_wheel_ratio = hood_radius_ft / wheel_radius_ft * magic_multiplier;
 
         double freq = speed / (path_radius_ft * Math.PI) * hood_to_wheel_ratio;
         double rpm = freq * 60.0;
         
-        // Tweak our RPM by some tuning value "kp"
-        //rpm *= kp;
 
         // If our calculations failed, were very small, or negative, don't run the shooter
         if(Double.isInfinite(rpm) 

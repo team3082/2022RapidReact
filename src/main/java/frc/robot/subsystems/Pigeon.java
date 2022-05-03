@@ -172,6 +172,12 @@ public class Pigeon {
 
         double error = getError();
         
+        // If we cross our target position, reset our integral
+        // to prevent some oscilation
+        //if (Math.signum(error) != Math.signum(m_lastError))
+        //    m_ISum = 0;
+        //else
+
         // Trapezoidal sum to approximate the integral of the error  
         m_ISum += dt*(error + m_lastError)/2;
 
@@ -206,13 +212,15 @@ public class Pigeon {
         correctionPower *= m_scale;
 
         
+        
+
         // If we've come to a rest and our error is close to 0, we're done. 
         // Zero our sums
-        if(Math.abs(derivative) < m_scale * 0.01) {
+        //if(Math.abs(derivative) < m_scale * 0.01) {
            // correctionPower = 0;
            // m_ISum = 0;
            // m_lastError = 0;
-        }
+        //}
 
         //System.out.println("^"+error + " _" + correctionPower);
         return correctionPower;
