@@ -41,7 +41,7 @@ public class BasicAuto {
             frame.instruction = INST.MOVETOANDLOOKAT;
             frame.move = new Vector2D(x,y);
             return frame;
-        }        
+        }
         static public AutoFrame LookAt(double x, double y)
         {
             AutoFrame frame = new AutoFrame();
@@ -120,8 +120,8 @@ public class BasicAuto {
         index = 0;
         isDone = false;
         m_intakeOn = false;
-        //threeBallTohuman();
-        backupAndShoot();
+        threeBallTohuman();
+        //backupAndShoot();
         //twoBall();
         //basic();
         beginInstruction();
@@ -171,24 +171,27 @@ public class BasicAuto {
             AutoFrame.MoveTo(82, -39),
             AutoFrame.Intake(true),
             //Ball at (150,-27)
-            AutoFrame.RevForDist(133, -39),
-            AutoFrame.MoveToAndLookAt(130, -39),
+            AutoFrame.MoveToAndLookAt(140, -39),
             AutoFrame.Intake(false),
-            AutoFrame.LookAt(0, 0),
-            AutoFrame.Shoot(),
             //3rd ball at (87, -125)
+            AutoFrame.MoveTo(100, -158),
+            AutoFrame.RevForDist(100, -158),
+            AutoFrame.AutoAlign(),
+            AutoFrame.Shoot(),
+            AutoFrame.RevForDist(105, -158),
+            AutoFrame.Shoot(),
             AutoFrame.Intake(true),
             AutoFrame.RevForDist(87, -125),
-            AutoFrame.MoveToAndLookAt(87, -125),
+            AutoFrame.MoveTo(87, -125),
             AutoFrame.Intake(false),
-            AutoFrame.LookAt(0, 0),
+            AutoFrame.LookAt(0, 0), 
             AutoFrame.Shoot(),
             //Human player at (118, -282)
-            AutoFrame.Intake(true),
-            AutoFrame.RevForDist(90, -275),
-            AutoFrame.MoveToAndLookAt(90, -275),
-            AutoFrame.LookAt(0,0),
-            AutoFrame.Shoot()
+            // AutoFrame.Intake(true),
+            // AutoFrame.RevForDist(90, -275),
+            // AutoFrame.MoveToAndLookAt(90, -275),
+            // AutoFrame.LookAt(0,0),
+            // AutoFrame.Shoot()
 
         };
     }
@@ -262,7 +265,7 @@ public class BasicAuto {
                 }
                 Shooter.fire();
                 if(instructions[index].stopTime == Double.MAX_VALUE && Shooter.atSetpoint()){
-                    instructions[index].stopTime = RTime.now() + 0.5;   
+                    instructions[index].stopTime = RTime.now() + 1;   
                     System.out.println("stop time set");
                 }
                 break;
