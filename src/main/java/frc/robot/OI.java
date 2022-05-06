@@ -154,6 +154,8 @@ public class OI {
         // Joystick deadzone for drive
         if(drive.mag() < 0.125)
             drive = new Vector2D(0, 0); 
+        //if(drive.mag() < 0.05)//testing needed fine control
+        //    drive = new Vector2D(0, 0); 
         else
         {
             // Smooth and boost
@@ -203,8 +205,6 @@ public class OI {
             Pigeon.stop();
         } else {
  
-            // Driver: Intakes
-            Intake.setEnabled(m_driverStick.getRawAxis(kIntakePull) > 0.075);
             
             // Driver: Revs to set rpm and does NOT auto align
             boolean shooterRev = m_driverStick.getRawButton(kShooterRev);
@@ -253,11 +253,16 @@ public class OI {
                 Shooter.setRPMForDist(SwervePosition.getPosition().mag() / 12.0);
                 //Shooter.revTo(manualFireRPM);
                 Shooter.fire();   
-            } else if (shooterRev) {
-                // Rev the shooter to a set rpm, somewhere about the middle of the field
-                Shooter.revTo(manualFireRPM);
             } else {
-                Shooter.stop();
+                
+            // Driver: Intakes
+            Intake.setEnabled(m_driverStick.getRawAxis(kIntakePull) > 0.075);
+                if (shooterRev) {
+                    // Rev the shooter to a set rpm, somewhere about the middle of the field
+                    Shooter.revTo(manualFireRPM);
+                } else {
+                    Shooter.stop();
+                }
             }
             
         }

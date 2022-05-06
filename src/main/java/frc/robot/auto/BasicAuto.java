@@ -23,6 +23,7 @@ public class BasicAuto {
         INTAKE(),
         REVFORDIST(),
         SHOOT(),
+        WAIT()
     }
 
     public static class AutoFrame
@@ -89,6 +90,12 @@ public class BasicAuto {
             AutoFrame frame = new AutoFrame();
             frame.instruction = INST.AUTOALIGN;
             frame.AAHubSeen = false;
+            return frame;
+        }
+        static public AutoFrame Wait(double seconds){
+            AutoFrame frame = new AutoFrame();
+            frame.instruction = INST.WAIT;
+            frame.stopTime = seconds;
             return frame;
         }
 
@@ -169,15 +176,18 @@ public class BasicAuto {
         instructions = new AutoFrame[]
         {
             AutoFrame.MoveTo(82, -39),
+            AutoFrame.Wait(1),
             AutoFrame.Intake(true),
             //Ball at (150,-27)
             AutoFrame.MoveToAndLookAt(140, -39),
+            AutoFrame.Wait(1),
             AutoFrame.Intake(false),
             //3rd ball at (87, -125)
-            AutoFrame.MoveTo(100, -158),
-            AutoFrame.RevForDist(100, -158),
-            AutoFrame.AutoAlign(),
+            AutoFrame.MoveTo(98, -168),
+            AutoFrame.RevForDist(98, -168),
+            AutoFrame.LookAt(0, 0),
             AutoFrame.Shoot(),
+            AutoFrame.Wait(1),
             AutoFrame.RevForDist(105, -158),
             AutoFrame.Shoot(),
             AutoFrame.Intake(true),
@@ -265,6 +275,7 @@ public class BasicAuto {
                 }
                 Shooter.fire();
                 if(instructions[index].stopTime == Double.MAX_VALUE && Shooter.atSetpoint()){
+                    instructions[index].stopTime = RTime.now() + 2;   
                     instructions[index].stopTime = RTime.now() + 1;   
                     System.out.println("stop time set");
                 }
@@ -277,6 +288,10 @@ public class BasicAuto {
                 if (instructions[index].AAHubSeen && Pigeon.atSetpoint())
                     nextInstruction();
                 
+                break;
+            case WAIT:
+                if (instructions[index].stopTime < RTime.now())
+                    nextInstruction();
                 break;
             default:
                 break;
@@ -315,6 +330,9 @@ public class BasicAuto {
             case REVFORDIST:
                 Shooter.setRPMForDist(instructions[index].dist);
                 nextInstruction();
+                break;
+            case WAIT:
+                instructions[index].stopTime += RTime.now();
                 break;
             default:
                 break;

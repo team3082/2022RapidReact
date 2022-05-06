@@ -5,6 +5,7 @@ import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
+import com.ctre.phoenix.motorcontrol.can.TalonFXPIDSetConfiguration;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 
 import edu.wpi.first.networktables.NetworkTable;
@@ -43,7 +44,7 @@ public class Shooter {
     private static final double kDeadbandRPM = 18.0;
 
     // When firing automatically, keep the handoff on only for kHandoffLifespan seconds
-    private static final double kHandoffLifespan = 1.0;
+    private static final double kHandoffLifespan = 0.5;
 
     // Handoff speeds
     private static final double kHandoffPullSpeed = 1.0;
@@ -88,12 +89,25 @@ public class Shooter {
         m_flywheel.setNeutralMode(NeutralMode.Coast);
         
         // Configure the PID for our velocity control
-        m_flywheel.config_kP(0, 0.3);
-        m_flywheel.config_kI(0, 0.011);
-        m_flywheel.config_kD(0, 0);
+        if(false)
+        {
+
+            m_flywheel.config_kP(0, 0.3);
+            m_flywheel.config_kI(0, 0.011);
+            m_flywheel.config_kD(0, 0);
+            m_flywheel.config_kF(0, 0);
+        }
+        else
+        {
+            m_flywheel.config_kP(0, 0.3);
+            m_flywheel.config_kI(0, 0.001);
+            m_flywheel.config_kD(0, 0);
+            m_flywheel.config_kF(0, 1023.0 / 20000.0);
+
+        }
         
         // Use a long loop period so we rev up to speed gently
-        m_flywheel.configClosedLoopPeriod(0, 1300);
+        m_flywheel.configClosedLoopPeriod(0, 1000);
         
         // Cap off our current at 39 amps. If we go above 40 amps, the breaker will flip
         SupplyCurrentLimitConfiguration currentLimit = new SupplyCurrentLimitConfiguration(true, 40, 40, 0 );
@@ -122,6 +136,28 @@ public class Shooter {
         
     }
 
+
+    private static void setVelocity(double vel) {
+        // Are we switching from winding down to speeding up?
+        boolean startShot = m_flywheel.getControlMode() == ControlMode.PercentOutput;
+
+        // Pump in the vel AFTER checking our mode as to not overwrite
+        m_flywheel.set(TalonFXControlMode.Velocity, vel);
+        
+        // Try.. to remember?? ....
+        if(startShot) {
+            // Where am I?... I don't remember this integral...
+            // Why am I here again...? Where'd my integral go?
+            double rpm = kVelToRPM * m_flywheel.getSelectedSensorVelocity();
+            double i = rpm / 2000.0 * 31977.0 * 0.5;
+            //m_flywheel.setIntegralAccumulator(i);
+            //System.out.println("Trying not to forget... " + i);
+        }
+//        System.out.println((kVelToRPM * m_flywheel.getSelectedSensorVelocity()) + ", " + m_flywheel.getIntegralAccumulator());
+        //System.out.println(m_flywheel.getStatorCurrent() + " " + m_flywheel.getSupplyCurrent());
+    }
+
+
     public static void update() {
         
         boolean reachedSetpoint = atSetpoint();
@@ -131,9 +167,9 @@ public class Shooter {
             case Firing:
                 double now = RTime.now();
                 
-                
+
                 // Rev the flywheel up to our set velocity
-                m_flywheel.set(TalonFXControlMode.Velocity, m_targetSpeed);
+                setVelocity(m_targetSpeed);
                 
                 // Pass in the ball only when it's at the setpoint
                 if(reachedSetpoint) {
@@ -151,7 +187,7 @@ public class Shooter {
 
             case Revving:
                 // Rev the flywheel up to our set velocity
-                m_flywheel.set(TalonFXControlMode.Velocity, m_targetSpeed);
+                setVelocity(m_targetSpeed);
 
                 // Don't run the handoff
                 m_handoff.set(ControlMode.PercentOutput, kHandoffStopSpeed);
@@ -189,7 +225,7 @@ public class Shooter {
     public static void setRPMForDist(double dist_ft)
     {
         // Take half a foot off our shot so that we bank it against the wall
-        dist_ft -= 0.5;
+        //dist_ft -= 0.5;
 
         // Big Gray Wheel
         final double wheel_radius_ft = 8.0 /* inch diameter */ / 2.0 / 12.0;

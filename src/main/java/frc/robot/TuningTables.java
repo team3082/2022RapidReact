@@ -17,7 +17,7 @@ public class TuningTables {
 
 
 
-    private static final boolean kEnabled = false; 
+    private static final boolean kEnabled = true; 
 
 	private static NetworkTable m_nt;
 	private static NetworkTableEntry m_ix;
