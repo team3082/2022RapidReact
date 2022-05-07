@@ -154,20 +154,20 @@ public class BasicAuto {
     }
 
     public static void twoBallLeft(){
-        Pigeon.setYaw(115);
-        SwervePosition.setPosition(new Vector2D(-60,-55));
+        Pigeon.setYaw(140);
+        SwervePosition.setPosition(new Vector2D(-44,-84));
         instructions = new AutoFrame[]{
-            AutoFrame.MoveTo(51, 51),
+            AutoFrame.MoveTo(-32, -72),
             AutoFrame.Wait(1),
             AutoFrame.Intake(true),
-            AutoFrame.RevForDist(-128,-88),
-            AutoFrame.MoveTo(-128,-88),//Ball at -128, -88
+            AutoFrame.RevForDist(-85,-130),
+            AutoFrame.MoveToAndLookAt(-85,-130),//Ball at -85,-130
             AutoFrame.Wait(1),
             AutoFrame.Intake(false),
             AutoFrame.LookAt(0, 0),
             AutoFrame.Shoot(),
             AutoFrame.Wait(1),
-            AutoFrame.RevForDist(-128,-88),
+            AutoFrame.RevForDist(-85,-130),
             AutoFrame.Shoot()
         };
     }

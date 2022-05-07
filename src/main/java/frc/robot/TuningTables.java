@@ -29,6 +29,7 @@ public class TuningTables {
 	private static NetworkTableEntry m_dt;
     private static NetworkTableEntry m_hub_dist_avg;
     private static NetworkTableEntry m_pigeon_error;
+	private static NetworkTableEntry m_pigeon_ang;
     
 	private static NetworkTable m_nt_set;
 	private static NetworkTableEntry m_shooter_angle;
@@ -51,6 +52,7 @@ public class TuningTables {
 		m_dt = m_nt.getEntry("dt");
         m_hub_dist_avg = m_nt.getEntry("hub_dist_avg");
 		m_pigeon_error = m_nt.getEntry("pigeon_error");
+		m_pigeon_ang = m_nt.getEntry("pigeon_ang");
 
 		m_shooter_angle = m_nt_set.getEntry("shooter_ang");
 		
@@ -62,6 +64,7 @@ public class TuningTables {
 		m_vy.setDouble(0);
 		m_dt.setDouble(0);
 		m_pigeon_error.setDouble(0);
+		m_pigeon_ang.setDouble(0);
 
 		m_shooter_angle.setDouble(Shooter.kShooterAngle);
     }
@@ -83,6 +86,7 @@ public class TuningTables {
 
 		m_dt.setDouble(RTime.deltaTime());
 		m_pigeon_error.setDouble(Pigeon.getError());
+		m_pigeon_ang.setDouble(Pigeon.getRotation());
 
         m_hub_dist_avg.setDouble(AutoAlign.m_distAvg);
 
