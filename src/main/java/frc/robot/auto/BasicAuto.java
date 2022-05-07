@@ -127,9 +127,9 @@ public class BasicAuto {
         index = 0;
         isDone = false;
         m_intakeOn = false;
-        threeBallTohuman();
+        //threeBall();
         //backupAndShoot();
-        //twoBall();
+        //twoBallLeft();
         //basic();
         beginInstruction();
     }
@@ -144,32 +144,35 @@ public class BasicAuto {
 
     public static void backupAndShoot(){
         Pigeon.setYaw(0);
-        SwervePosition.setPosition(new Vector2D(0,-94));
+        SwervePosition.setPosition(new Vector2D(0,-92));
         instructions = new AutoFrame[]{
-            AutoFrame.RevForDist(0,-152),
-            AutoFrame.MoveTo(0,-152),
+            AutoFrame.RevForDist(0,-136),
+            AutoFrame.MoveTo(0,-136),
+            AutoFrame.LookAt(0, 0),
             AutoFrame.Shoot()
         };
     }
 
-    public static void twoBall(){
-        Pigeon.setYaw(180);
-        SwervePosition.setPosition(new Vector2D(0,-94));
+    public static void twoBallLeft(){
+        Pigeon.setYaw(115);
+        SwervePosition.setPosition(new Vector2D(-60,-55));
         instructions = new AutoFrame[]{
-            AutoFrame.MoveTo(0, -90),
+            AutoFrame.MoveTo(51, 51),
+            AutoFrame.Wait(1),
             AutoFrame.Intake(true),
-            AutoFrame.RevForDist(0,-122),
-            AutoFrame.MoveTo(0,-152),
+            AutoFrame.RevForDist(-128,-88),
+            AutoFrame.MoveTo(-128,-88),//Ball at -128, -88
+            AutoFrame.Wait(1),
             AutoFrame.Intake(false),
             AutoFrame.LookAt(0, 0),
-            AutoFrame.AutoAlign(), //auto align the robot (testing)
             AutoFrame.Shoot(),
-            AutoFrame.RevForDist(0,-122),
+            AutoFrame.Wait(1),
+            AutoFrame.RevForDist(-128,-88),
             AutoFrame.Shoot()
         };
     }
 
-    public static void threeBallTohuman() {
+    public static void threeBall() {
         //NOT FINISHED!!!!
         Pigeon.setYaw(-90);
         SwervePosition.setPosition(new Vector2D(86, -39));
@@ -182,9 +185,10 @@ public class BasicAuto {
             AutoFrame.MoveToAndLookAt(140, -39),
             AutoFrame.Wait(1),
             AutoFrame.Intake(false),
+            AutoFrame.MoveTo(136, -140),
             //3rd ball at (87, -125)
-            AutoFrame.MoveTo(98, -168),
             AutoFrame.RevForDist(98, -168),
+            AutoFrame.MoveTo(98, -168),
             AutoFrame.LookAt(0, 0),
             AutoFrame.Shoot(),
             AutoFrame.Wait(1),
