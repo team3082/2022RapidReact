@@ -23,7 +23,8 @@ public class BasicAuto {
         INTAKE(),
         REVFORDIST(),
         SHOOT(),
-        WAIT()
+        WAIT(),
+        AUTOREV(),
     }
 
     public static class AutoFrame
@@ -98,6 +99,13 @@ public class BasicAuto {
             frame.stopTime = seconds;
             return frame;
         }
+        static public AutoFrame AutoRev(double x, double y)
+        {
+            AutoFrame frame = new AutoFrame();
+            frame.instruction = INST.AUTOREV;
+            frame.dist = Math.hypot(x, y)/12.0;
+            return frame;
+        }
 
         private AutoFrame() {} 
 
@@ -128,7 +136,7 @@ public class BasicAuto {
         isDone = false;
         m_intakeOn = false;
         //threeBall();
-        //backupAndShoot();
+        backupAndShoot();
         //twoBallLeft();
         //basic();
         beginInstruction();
@@ -148,8 +156,11 @@ public class BasicAuto {
         instructions = new AutoFrame[]{
             AutoFrame.RevForDist(0,-136),
             AutoFrame.MoveTo(0,-136),
+            AutoFrame.Intake(true),
             AutoFrame.LookAt(0, 0),
-            AutoFrame.Shoot()
+            AutoFrame.AutoRev(0, -136),
+            AutoFrame.Shoot(),
+            AutoFrame.Intake(false)
         };
     }
 
@@ -165,9 +176,10 @@ public class BasicAuto {
             AutoFrame.Wait(1),
             AutoFrame.Intake(false),
             AutoFrame.LookAt(0, 0),
+            AutoFrame.AutoRev(-85,-130),
             AutoFrame.Shoot(),
             AutoFrame.Wait(1),
-            AutoFrame.RevForDist(-85,-130),
+            AutoFrame.AutoRev(-85,-130),
             AutoFrame.Shoot()
         };
     }
@@ -187,18 +199,20 @@ public class BasicAuto {
             AutoFrame.Intake(false),
             AutoFrame.MoveTo(136, -140),
             //3rd ball at (87, -125)
-            AutoFrame.RevForDist(98, -168),
-            AutoFrame.MoveTo(98, -168),
+            AutoFrame.RevForDist(120, -175),
+            AutoFrame.MoveTo(120, -175),
             AutoFrame.LookAt(0, 0),
+            AutoFrame.AutoRev(120, -175),
             AutoFrame.Shoot(),
             AutoFrame.Wait(1),
-            AutoFrame.RevForDist(105, -158),
+            AutoFrame.AutoRev(105, -158),
             AutoFrame.Shoot(),
             AutoFrame.Intake(true),
             AutoFrame.RevForDist(87, -125),
             AutoFrame.MoveTo(87, -125),
             AutoFrame.Intake(false),
             AutoFrame.LookAt(0, 0), 
+            AutoFrame.AutoRev(87, -125),
             AutoFrame.Shoot(),
             //Human player at (118, -282)
             // AutoFrame.Intake(true),
@@ -338,8 +352,16 @@ public class BasicAuto {
             case WAIT:
                 instructions[index].stopTime += RTime.now();
                 break;
+            case AUTOREV:
+                if (AutoAlign.m_hubSeen) 
+                    Shooter.setRPMForDist(AutoAlign.m_distAvg);
+                else
+                    Shooter.setRPMForDist(instructions[index].dist);
+                nextInstruction();
+                break;
             default:
                 break;
+            
         }
     } 
 }

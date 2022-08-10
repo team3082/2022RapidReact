@@ -24,6 +24,12 @@ public class Shooter {
         Eject(),
     }
 
+    public enum HandoffMode {
+        Stopped(),
+        Live(),
+        Dead(),
+    }
+
 
 	public static final double kShooterAngle = 24.0;
 
@@ -44,11 +50,13 @@ public class Shooter {
     private static final double kDeadbandRPM = 18.0;
 
     // When firing automatically, keep the handoff on only for kHandoffLifespan seconds
-    private static final double kHandoffLifespan = 0.5;
+    private static final double kHandoffLifespan = 0.2;
+    private static final double kHandoffDeadtime = 0.4;
 
     // Handoff speeds
-    private static final double kHandoffPullSpeed = 1.0;
-    private static final double kHandoffEjectSpeed = -1.0;
+    private static final double kHandoffPullSpeed   = 1.0;
+    private static final double kHandoffEjectSpeed  = -1.0;
+    private static final double kHandoffRetainSpeed = -0.6;
     // Slowly run the handoff backwards when stopped
     private static final double kHandoffStopSpeed = 0.0;
 
@@ -58,7 +66,9 @@ public class Shooter {
 
     private static ShooterMode m_mode    = ShooterMode.Stopped;
     private static double m_targetSpeed  = 0;
-    private static double m_shotLiveTime = 0;
+
+    private static HandoffMode m_handoffMode = HandoffMode.Stopped;
+    private static double m_handoffLiveTime     = 0;
 
     private static NetworkTable m_nt;
     private static NetworkTableEntry nt_target_rpm;
@@ -75,7 +85,7 @@ public class Shooter {
         m_handoff.setInverted(false);
         
         // Set the handoff to break to prevent balls from slipping
-        m_handoff.setNeutralMode(NeutralMode.Brake);
+        m_handoff.setNeutralMode(NeutralMode.Coast);
 
 
 
@@ -91,7 +101,6 @@ public class Shooter {
         // Configure the PID for our velocity control
         if(false)
         {
-
             m_flywheel.config_kP(0, 0.3);
             m_flywheel.config_kI(0, 0.011);
             m_flywheel.config_kD(0, 0);
@@ -132,29 +141,24 @@ public class Shooter {
         // Zero our vars
         m_mode         = ShooterMode.Stopped;
         m_targetSpeed  = 0;
-        m_shotLiveTime = 0;
-        
+        m_handoffLiveTime = 0;
+        m_handoffMode  = HandoffMode.Stopped;
+
     }
 
 
+    private static void zeroHandoffVars() {
+        m_handoffMode = HandoffMode.Stopped;
+        m_handoffLiveTime = 0;
+    }
+
     private static void setVelocity(double vel) {
         // Are we switching from winding down to speeding up?
-        boolean startShot = m_flywheel.getControlMode() == ControlMode.PercentOutput;
+        //boolean startShot = m_flywheel.getControlMode() == ControlMode.PercentOutput;
 
         // Pump in the vel AFTER checking our mode as to not overwrite
         m_flywheel.set(TalonFXControlMode.Velocity, vel);
         
-        // Try.. to remember?? ....
-        if(startShot) {
-            // Where am I?... I don't remember this integral...
-            // Why am I here again...? Where'd my integral go?
-            double rpm = kVelToRPM * m_flywheel.getSelectedSensorVelocity();
-            double i = rpm / 2000.0 * 31977.0 * 0.5;
-            //m_flywheel.setIntegralAccumulator(i);
-            //System.out.println("Trying not to forget... " + i);
-        }
-//        System.out.println((kVelToRPM * m_flywheel.getSelectedSensorVelocity()) + ", " + m_flywheel.getIntegralAccumulator());
-        //System.out.println(m_flywheel.getStatorCurrent() + " " + m_flywheel.getSupplyCurrent());
     }
 
 
@@ -167,22 +171,59 @@ public class Shooter {
             case Firing:
                 double now = RTime.now();
                 
-
                 // Rev the flywheel up to our set velocity
                 setVelocity(m_targetSpeed);
                 
+                
                 // Pass in the ball only when it's at the setpoint
-                if(reachedSetpoint) {
-                    m_shotLiveTime = now + kHandoffLifespan;
-                    m_handoff.set(ControlMode.PercentOutput, kHandoffPullSpeed);
-                    // When we're running the handoff, run the intake too incase a ball is stuck!
-                    Intake.setEnabled(true);
+                
+                // What state should the handoff be in?
+                switch(m_handoffMode) {
+                    case Stopped:
+                        // Wait until at setpoint and then make it live
+                        if(reachedSetpoint) {
+                            m_handoffMode = HandoffMode.Live;
+                            m_handoffLiveTime = now + kHandoffLifespan;
+                        }
+                        break;
+                    case Live:
+                        // Wait until we are over our lifespan and then die
+                        if(now > m_handoffLiveTime) {
+                            m_handoffMode = HandoffMode.Dead;
+                            m_handoffLiveTime = now + kHandoffDeadtime;
+                        }
+                        break;
+                    case Dead:
+                        // Wait until we are over our death time and at setpoint
+                        // and then COME BACK LIKE A PHOENIX!!
+                        if(now > m_handoffLiveTime && reachedSetpoint) {
+                            m_handoffMode = HandoffMode.Live;
+                            m_handoffLiveTime = now + kHandoffDeadtime;
+                        }
+                        break;
                     
-                } else if(now > m_shotLiveTime) {
-                    // If we're not at setpoint and the handoff has run its lifespan, then turn it off.
-                    m_handoff.set(ControlMode.PercentOutput, kHandoffEjectSpeed);
-                    Intake.setEnabled(false);
                 }
+
+                // Apply the handoff's mode
+                switch(m_handoffMode) {
+                    case Stopped:
+                        // We dont want to run the handoff if we're just starting
+                        // The ball can jam the shooter wheel!
+                        m_handoff.set(ControlMode.PercentOutput, kHandoffRetainSpeed);
+                        break;
+                    case Dead:
+                        // Run the handoff backwards to prevent balls from shooting early
+                        m_handoff.set(ControlMode.PercentOutput, kHandoffEjectSpeed);
+                        // Run the intake to prevent balls from pushing eachother out
+                        Intake.slowRetain();   
+                        break;
+                    case Live:
+                        m_handoff.set(ControlMode.PercentOutput, kHandoffPullSpeed);
+                        // When we're running the handoff, run the intake too incase a ball is stuck!
+                        Intake.setEnabled(true);
+                        break;                     
+                }
+
                 break;
 
             case Revving:
@@ -191,14 +232,14 @@ public class Shooter {
 
                 // Don't run the handoff
                 m_handoff.set(ControlMode.PercentOutput, kHandoffStopSpeed);
-                m_shotLiveTime = 0.0;
+                zeroHandoffVars();
                 break;
             
             case Eject:
                 // Run the shooter forward and the handoff backwards
                 m_flywheel.set(TalonFXControlMode.PercentOutput, 0.8);
                 m_handoff.set(ControlMode.PercentOutput, kHandoffEjectSpeed);
-                m_shotLiveTime = 0.0;
+                zeroHandoffVars();
                 m_targetSpeed = 0.0;
                 break;
 
@@ -208,7 +249,7 @@ public class Shooter {
                 // This should help us maintain the health of our belts
                 m_flywheel.set(TalonFXControlMode.PercentOutput, 0.0);
                 m_handoff.set(ControlMode.PercentOutput, kHandoffStopSpeed);
-                m_shotLiveTime = 0.0;
+                zeroHandoffVars();
                 m_targetSpeed = 0.0;
                 break;
         }
@@ -226,6 +267,7 @@ public class Shooter {
     {
         // Take half a foot off our shot so that we bank it against the wall
         //dist_ft -= 0.5;
+        dist_ft -= 0.1;
 
         // Big Gray Wheel
         final double wheel_radius_ft = 8.0 /* inch diameter */ / 2.0 / 12.0;

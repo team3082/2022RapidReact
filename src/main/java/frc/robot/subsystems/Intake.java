@@ -29,4 +29,9 @@ public class Intake {
         m_intakeVictor.set(ControlMode.PercentOutput, -1);
     }
 
+    
+    public static void slowRetain() {
+        m_intakeVictor.set(ControlMode.PercentOutput, 0.25);
+    }
+
 }

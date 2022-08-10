@@ -43,7 +43,7 @@ public class Robot extends TimedRobot {
 		RTime.update();
 
 		SwervePosition.update();
-		AutoAlign.update();
+		AutoAlign.update(true);
 		
 		TuningTables.update();
 
@@ -51,30 +51,42 @@ public class Robot extends TimedRobot {
 		Shooter.update();
 	}
 
+	static final boolean kSwerveCalibrate = false;
 	@Override
 	public void testInit() {
-		System.out.println("Test Init!");
-		
-		RTime.init();
-		TuningTables.init();
-		Shooter.init();
-		
-		Pigeon.zero();
-		SwerveManager.zeroSteeringEncoders();
+		if(kSwerveCalibrate) {
+			System.out.println("Swerve Calibration!");
 
-		TestMode.init();
+			Pigeon.zero();
+			SwerveManager.zeroSteeringEncoders();
+		}
+		else {
+			System.out.println("Test Init!");
+			
+			RTime.init();
+			TuningTables.init();
+			Shooter.init();
+			
+			Pigeon.zero();
+			SwerveManager.zeroSteeringEncoders();
+	
+			TestMode.init();
+		}
 	}
 
 	@Override
 	public void testPeriodic() {
-		//SwerveManager.calibrationTest();
-		
-		RTime.update();
-		
-		TestMode.update();
-		TuningTables.update();
-
-		Shooter.update();
+		if(kSwerveCalibrate) {
+			SwerveManager.calibrationTest();
+		}
+		else {
+			RTime.update();
+			
+			TestMode.update();
+			TuningTables.update();
+			
+			Shooter.update();
+		}		
 	}
 
 	@Override
@@ -100,8 +112,9 @@ public class Robot extends TimedRobot {
 		RTime.update();
 		SwervePosition.update();
 
+		AutoAlign.update(false);
 		BasicAuto.update();
-
+		
 		Shooter.update();
 		TuningTables.update();
 	}

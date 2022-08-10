@@ -11,9 +11,9 @@ public class SwerveManager {
     public static void init() {
         m_swerveMods = new SwerveMod[] {
                 new SwerveMod(2, 1, -1, -1, 253.389, 0),
-                new SwerveMod(4, 3, -1,  1, 203.115, 0),
+                new SwerveMod(4, 3, -1,  1, 197.490, 0),
                 new SwerveMod(6, 5,  1,  1, 227.461, 0),
-                new SwerveMod(8, 7,  1, -1, 129.990, 0),
+                new SwerveMod(8, 7,  1, -1,  63.018, 0),
         };
     }
     
@@ -76,7 +76,7 @@ public class SwerveManager {
             // Drive the swerve modules
             if(power != 0)
                 m_swerveMods[i].rotateToRad(direction);
-            m_swerveMods[i].drive(power);
+            m_swerveMods[i].drive(power/3);
         }
 
 
