@@ -76,7 +76,7 @@ public class SwerveManager {
             // Drive the swerve modules
             if(power != 0)
                 m_swerveMods[i].rotateToRad(direction);
-            m_swerveMods[i].drive(power/3);
+            m_swerveMods[i].drive(power);
         }
 
 
