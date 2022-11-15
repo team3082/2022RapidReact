@@ -158,7 +158,7 @@ public class BasicAuto {
             AutoFrame.MoveTo(0,-136),
             AutoFrame.Intake(true),
             AutoFrame.LookAt(0, 0),
-            AutoFrame.AutoRev(0, -136),
+            AutoFrame.AutoRev(0, -100),
             AutoFrame.Shoot(),
             AutoFrame.Intake(false)
         };
