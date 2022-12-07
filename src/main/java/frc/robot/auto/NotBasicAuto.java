@@ -99,8 +99,11 @@ public class NotBasicAuto {
         rotSpeed = Pigeon.correctTurnWithPID();
         movement = new Vector2D(0,0);
 
+        if (current_frame >= frames.length)
+            return;
+
         if (frames[current_frame].update()) {
-            if (++current_frame == frames.length - 1)
+            if (++current_frame >= frames.length)
                 return;
             frames[current_frame].start();
         }
