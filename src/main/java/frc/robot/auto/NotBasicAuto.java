@@ -102,7 +102,7 @@ public class NotBasicAuto {
         if (frames[current_frame].update()) {
             if (++current_frame == frames.length - 1)
                 return;
-            frames[++current_frame].start();
+            frames[current_frame].start();
         }
 
         Intake.setEnabled(intakeOn);
